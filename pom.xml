@@ -1,9 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.retorx</groupId>
-	<artifactId>retorx-core</artifactId>
-	<version>1.1-SNAPSHOT</version>
+	<artifactId>rss-mashup</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
 	<name>${project.artifactId}</name>
+    <packaging>war</packaging>
 
 	<properties>
 		<maven.compiler.source>1.6</maven.compiler.source>
@@ -52,6 +53,11 @@
 			<version>${resteasy.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>jaxrs-api</artifactId>
+			<version>${resteasy.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
 			<version>${jackson.version}</version>
@@ -97,6 +103,17 @@
             <version>2.5</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+        	<groupId>org.jsoup</groupId>
+        	<artifactId>jsoup</artifactId>
+        	<version>1.7.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.ning</groupId>
+            <artifactId>async-http-client</artifactId>
+            <version>1.7.2</version>
+        </dependency>
+
 
 		<!-- Test -->
         <dependency>
@@ -111,6 +128,12 @@
             <version>4.9</version>
             <scope>test</scope>
         </dependency>
+		<dependency>
+			<groupId>org.scala-tools.testing</groupId>
+			<artifactId>specs_2.10</artifactId>
+			<version>1.6.9</version>
+			<scope>test</scope>
+		</dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_2.10</artifactId>
@@ -164,7 +187,15 @@
 					</includes>
 				</configuration>
 			</plugin>
-		</plugins>
-	</build>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.1.1</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
 
