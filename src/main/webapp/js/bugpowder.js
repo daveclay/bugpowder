@@ -40,6 +40,9 @@ Fear.prototype.handleImage = function(imageUrl) {
 Fear.prototype.nextImage = function(image) {
     this.images[this.index].element.addClass("hidden");
     this.index++;
+    if (this.index == this.images.length) {
+        this.index = 0;
+    }
     this.images[this.index].element.removeClass("hidden");
 };
 
