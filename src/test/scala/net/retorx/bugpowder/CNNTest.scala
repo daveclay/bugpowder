@@ -16,7 +16,7 @@ class CNNTest extends FlatSpec with DefaultExampleExpectationsListener with Mock
     val cnn = new CNN()
 
     "CNN" should "grab some images" in {
-        cnn.getImageUrls.foreach(img => {
+        cnn.getImages.foreach(img => {
             println(img)
         })
     }

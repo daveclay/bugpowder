@@ -5,13 +5,13 @@ import com.google.inject.{Inject, Singleton}
 
 @Singleton
 @Path("/fear")
-class FearService @Inject() (cnn: CNN) {
+class FearService @Inject() (fearBuilder: FearBuilder) {
 
     @GET
     @Path("/images")
     @Produces(Array("text/json"))
     def getImages = {
-        cnn.getImageUrls
+        fearBuilder.getImages
     }
 
 }

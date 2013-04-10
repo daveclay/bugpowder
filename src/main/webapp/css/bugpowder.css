@@ -5,3 +5,13 @@ body {
     font-size: 11px;
 }
 
+.fearImg {
+    position: absolute;
+    top: 100px;
+    left: 100px;
+}
+
+
+.hidden {
+    visibility: hidden;
+}

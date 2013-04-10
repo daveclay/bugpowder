@@ -7,6 +7,8 @@ function Fear() {
     this.container = $('<div/>');
     this.container.addClass("container");
     addToBody(this.container);
+    this.index = 0;
+    this.images = [];
 }
 
 Fear.prototype.load = function() {
@@ -21,11 +23,30 @@ Fear.prototype.handleImages = function(images) {
     images.forEach(function(image) {
         self.handleImage(image);
     });
+
+    this.startSequence();
 };
 
-Fear.prototype.handleImage = function(image) {
+Fear.prototype.handleImage = function(imageUrl) {
     var img = $('<img/>');
-    img.attr("src", image);
+    img.addClass("fearImg hidden");
+    img.attr("src", imageUrl);
+    var image = {};
+    image.element = img;
+    this.images.push(image);
     this.container.append(img);
+};
+
+Fear.prototype.nextImage = function(image) {
+    this.images[this.index].element.addClass("hidden");
+    this.index++;
+    this.images[this.index].element.removeClass("hidden");
+};
+
+Fear.prototype.startSequence = function(image) {
+    var self = this;
+    setInterval(function() {
+        self.nextImage();
+    }, 100);
 };
 
