@@ -7,7 +7,7 @@ $(document).ready(function() {
 
 function Ticker() {
     this.timer = new Timer();
-    this.timer.delay = 70;
+    this.timer.delay = 200;
     this.element = $('<div/>');
     this.element.addClass("ticker");
     addToBody(this.element);
@@ -27,13 +27,17 @@ Ticker.prototype.handleTicker = function(ticker) {
     });
     this.tickerText = ticker.text;
     this.tickerLength = this.tickerText.length;
-    this.element.text(this.tickerText);
+    this.updateText();
     this.timer.start();
+};
+
+Ticker.prototype.updateText = function() {
+    this.element.text(this.tickerText);
 };
 
 Ticker.prototype.moveTicker = function(tick) {
     this.tickerText = this.tickerText.substr(1, this.tickerLength - 2) + this.tickerText.charAt(0);
-    this.element.text(this.tickerText);
+    this.updateText();
 };
 
 function Image(element, index) {

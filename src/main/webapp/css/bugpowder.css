@@ -16,6 +16,9 @@ body {
 .ticker {
     position: absolute;
     top: 95%;
+    width: 100%;
+    overflow-x: hidden;
+    height: 11px;
     background: black;
     color: #a6a6a6;
 }
