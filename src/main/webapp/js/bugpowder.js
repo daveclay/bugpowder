@@ -1,7 +1,27 @@
 $(document).ready(function() {
     var fear = new Fear();
     fear.load();
+    var ticker = new Ticker();
+    ticker.load();
 });
+
+function Ticker() {
+    this.timer = new Timer();
+    this.element = $('<div/>');
+    this.element.addClass("ticker");
+    addToBody(this.element);
+}
+
+Ticker.prototype.load = function() {
+    var self = this;
+    get("fear/feeds", function(ticker) {
+        self.handleTicker(ticker)
+    });
+};
+
+Ticker.prototype.handleTicker = function(ticker) {
+    this.element.text(ticker.text);
+};
 
 function Image(element, index) {
     this.element = element;
