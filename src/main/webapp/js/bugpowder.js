@@ -40,9 +40,10 @@ Ticker.prototype.moveTicker = function(tick) {
     this.updateText();
 };
 
-function Image(element, index) {
+function Image(element, index, imageUrl) {
     this.element = element;
     this.index = index;
+    this.imageUrl = imageUrl;
 }
 
 Image.prototype.show = function() {
@@ -62,6 +63,12 @@ function Fear() {
     addToBody(this.container);
     this.currentlyVisibleImage = 0;
     this.images = [];
+    this.insanitySwap = false;
+
+    var self = this;
+    this.insanityInterval = setInterval(function() {
+        self.swapInsanity();
+    }, 10000);
 }
 
 Fear.prototype.load = function() {
@@ -89,7 +96,7 @@ Fear.prototype.handleImage = function(imageUrl, idx) {
     var img = $('<img/>');
     img.addClass("fearImg hidden");
     img.attr("src", imageUrl);
-    var image = new Image(img, idx);
+    var image = new Image(img, idx, imageUrl);
     this.images.push(image);
     this.container.append(img);
 };
@@ -101,6 +108,41 @@ Fear.prototype.nextImage = function(tick) {
     } else {
         this.show(this.images[tick]);
     }
+};
+
+Fear.prototype.swapInsanity = function() {
+    var self = this;
+    if (this.insanitySwap) {
+        this.images.forEach(function(image) {
+            image.element.addClass("fearImg hidden");
+            image.element.removeClass("fearImgLayout");
+        });
+        this.timer.onUpdate(function(tick) {
+            self.nextImage(tick);
+        });
+    } else {
+        this.images.forEach(function(image) {
+            image.element.removeClass("fearImg hidden");
+            image.element.addClass("fearImgLayout");
+        });
+        this.timer.onUpdate(function(tick) {
+            self.insanity(tick);
+        });
+    }
+    this.insanitySwap = ! this.insanitySwap;
+};
+
+Fear.prototype.insanity = function(tick) {
+    var self = this;
+    this.images.forEach(function(image) {
+        var randomImage = self.randomer.pickRandom(self.images);
+        if ( ! randomImage) {
+            console.log("WTF: " + randomImage);
+        } else {
+            var src = randomImage.imageUrl;
+            $(image.element).attr("src", src);
+        }
+    });
 };
 
 Fear.prototype.show = function(image) {
@@ -123,7 +165,12 @@ Randomer.prototype.moreOftenThan = function(percent) {
 };
 
 Randomer.prototype.randomInt = function(range) {
-    return Math.round(Math.random() * range);
+    return Math.floor(Math.random() * range);
+};
+
+Randomer.prototype.pickRandom = function(array) {
+    var index = Math.floor(Math.random() * array.length);
+    return array[index];
 };
 
 function Timer() {
