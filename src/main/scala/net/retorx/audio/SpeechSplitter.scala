@@ -2,17 +2,16 @@ package net.retorx.audio
 
 import java.io.BufferedInputStream
 import java.io.FileInputStream
-
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-
 import java.util.Arrays
-
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.SourceDataLine;
+import javax.sound.sampled.AudioFormat
+import javax.sound.sampled.AudioInputStream
+import javax.sound.sampled.AudioSystem
+import javax.sound.sampled.DataLine
+import javax.sound.sampled.SourceDataLine
+import java.io.DataOutputStream
+import java.io.FileOutputStream
 
 
 object SpeechSplitter extends App {
@@ -25,6 +24,9 @@ object SpeechSplitter extends App {
 			println("Could not find file '" + fileName + "'.")
 			System.exit(1)
 		}
+		
+		var fileNum = 1
+		var os = new DataOutputStream(new FileOutputStream(args(1) + fileNum))
 		
 		var ais:AudioInputStream = null
 		try {
@@ -42,6 +44,7 @@ object SpeechSplitter extends App {
 			val buf = new Array[Byte](framesPerRead * bytesPerFrame)
 			var totalFramesRead = 0
 			var numBytesRead = 0
+			var quietSamples = 0
 			do {
 				numBytesRead = ais.read(buf)
 				println("Read " + numBytesRead + " bytes")
@@ -62,7 +65,20 @@ object SpeechSplitter extends App {
 						
 						val sample = byteBuf.getShort	(0)
 						
-						println("  " + sample)
+						// println("  " + sample)
+						// Do something with the sample
+						
+						os.writeShort(sample)
+						if (Math.abs(sample) < 100) {
+						  quietSamples += 1
+						}
+						
+						if (quietSamples > 16000) {
+						  os.close();
+						  fileNum += 1
+						  os = new DataOutputStream(new FileOutputStream(args(1) + fileNum))
+						  quietSamples = 0
+						}
 
 						i += bytesPerFrame
 					}
