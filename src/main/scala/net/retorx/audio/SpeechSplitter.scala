@@ -52,18 +52,15 @@ object SpeechSplitter extends App {
 					
 					var i = 0
 					while (i < numBytesRead) {
-						val frameBuf = new Array[Byte](2)
-						for (j <- 0 until bytesPerFrame) {
-							frameBuf(j) = buf(i + j)
-						}
-
-						val byteBuf = ByteBuffer.wrap(frameBuf)
-						
+						val byteBuf = ByteBuffer.allocate(2)
 						if ( ! format.isBigEndian ) {
 							byteBuf.order(ByteOrder.LITTLE_ENDIAN)
 						}
+						for (j <- 0 until bytesPerFrame) {
+							byteBuf.put(buf(i + j))
+						}
 						
-						val sample = byteBuf.getShort
+						val sample = byteBuf.getShort	(0)
 						
 						println("  " + sample)
 
