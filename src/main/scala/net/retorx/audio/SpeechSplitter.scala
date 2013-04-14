@@ -14,16 +14,22 @@ import java.io.DataOutputStream
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.io.InputStream
+import scala.util.Random
 
 class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
-    var nextFileNum = 1
+  
+	val random = new Random()
+	
+    var nextFileTag = random.nextInt.toHexString
     var outputStream : DataOutputStream = null;
       
 	var quietSamples = 0
 	var loudSamples = 0;
     
-    val silenceThreshold = 1000
+    val silenceThreshold = 1500
     val secondsOfSilence = 0.1
+    
+    var writingToFile = false
   
     def split() {
 		swapOutputFile()
@@ -47,6 +53,7 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
 			val buf = new Array[Byte](framesPerRead * bytesPerFrame)
 			var totalFramesRead = 0
 			var numBytesRead = 0
+
 			do {
 				numBytesRead = ais.read(buf)
 				if (numBytesRead > 0) {
@@ -59,16 +66,20 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
 						if ( ! format.isBigEndian ) {
 							byteBuf.order(ByteOrder.LITTLE_ENDIAN)
 						}
-						for (j <- 0 until bytesPerFrame) {
+						
+						val bytesToProcess = bytesPerFrame / format.getChannels
+						for (j <- 0 until bytesToProcess) {
 							byteBuf.put(buf(i + j))
 						}
 						
 						val sample = byteBuf.getShort(0)
 						
-						outputStream.writeShort(sample)
 						if (Math.abs(sample) < silenceThreshold) {
 						  quietSamples += 1
 						} else {
+						  if (loudSamples == 0) {
+						    writingToFile = true
+						  }
 						  loudSamples += 1
 						  quietSamples = 0
 						}
@@ -80,6 +91,9 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
 						    quietSamples = 0
 						  }
 						}
+
+						if (writingToFile)
+							outputStream.writeShort(sample)
 
 						i += bytesPerFrame
 					}
@@ -96,12 +110,13 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
 	    outputStream.close();
 	  }
 
-	  val newFileName = fileNameBase + nextFileNum
+	  val newFileName = fileNameBase + nextFileTag + ".raw"
 	  println("Opening " + newFileName + " after " + loudSamples + " loud samples and " + quietSamples + " quiet samples")
 	  outputStream = new DataOutputStream(new FileOutputStream(newFileName))
-      nextFileNum += 1
+      nextFileTag = random.nextInt.toHexString
       quietSamples = 0
       loudSamples = 0
+      writingToFile = false
 
 	}
 	
