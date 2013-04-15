@@ -72,26 +72,22 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
 			val buf = new Array[Byte](framesPerRead * bytesPerFrame)
 			var totalFramesRead = 0
 			var numBytesRead = 0
-
+			
 			do {
 				numBytesRead = decodedAis.read(buf)
 				if (numBytesRead > 0) {
 					val numFramesRead = numBytesRead / bytesPerFrame
 					totalFramesRead += numFramesRead
 					
+					val byteBuf = ByteBuffer.wrap(buf,0,numBytesRead)
+					if ( ! decodedFormat.isBigEndian ) {
+						byteBuf.order(ByteOrder.LITTLE_ENDIAN)
+					}
+
 					var i = 0
 					while (i < numBytesRead) {
-						val byteBuf = ByteBuffer.allocate(2)
-						if ( ! decodedFormat.isBigEndian ) {
-							byteBuf.order(ByteOrder.LITTLE_ENDIAN)
-						}
-						
-						val bytesToProcess = bytesPerFrame / decodedFormat.getChannels
-						for (j <- 0 until bytesToProcess) {
-							byteBuf.put(buf(i + j))
-						}
-						
-						val sample = byteBuf.getShort(0)
+					  
+						val sample = byteBuf.getShort()
 						
 						if (Math.abs(sample) < silenceThreshold) {
 						  quietSamples += 1
@@ -111,8 +107,13 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
 						  }
 						}
 
-						if (writingToFile)
+						if (writingToFile) {
 							outputStream.writeShort(sample)
+							if (decodedFormat.getChannels == 2) {
+							  outputStream.writeShort(byteBuf.getShort)
+							}
+						}
+						
 
 						i += bytesPerFrame
 					}
@@ -137,8 +138,8 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
 				AudioFormat.Encoding.PCM_SIGNED,
 				decodedFormat.getSampleRate,
 				16,
-				1,
-				2,
+				decodedFormat.getChannels,
+				decodedFormat.getChannels * 2,
 				decodedFormat.getSampleRate,
 				true
 		    )
