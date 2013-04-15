@@ -16,13 +16,17 @@ import java.io.OutputStream
 import java.io.InputStream
 import scala.util.Random
 import java.net.URL
+import java.io.ByteArrayOutputStream
+import java.io.ByteArrayInputStream
+import java.io.File
+import javax.sound.sampled.AudioFileFormat
 
 class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
   
 	val random = new Random()
 	
-    var nextFileTag = random.nextInt.toHexString
-    var outputStream : DataOutputStream = null;
+    var outputStream : DataOutputStream = null
+	var outputBuffer : ByteArrayOutputStream = null
       
 	var quietSamples = 0
 	var loudSamples = 0;
@@ -31,6 +35,8 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
     val secondsOfSilence = 0.1
     
     var writingToFile = false
+    
+    var decodedFormat : AudioFormat = null
   
     def split() {
 		swapOutputFile()
@@ -42,7 +48,7 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
 			val format = ais.getFormat
 			println("format is: " + format)
 			
-			val decodedFormat = new AudioFormat(
+			decodedFormat = new AudioFormat(
 					AudioFormat.Encoding.PCM_SIGNED,
 					format.getSampleRate,
 					16,
@@ -119,14 +125,33 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
     
 	private def swapOutputFile() {
 
-	  if (outputStream != null) {
-	    outputStream.close();
+	  if (outputBuffer != null) {	    
+	    val bais = new ByteArrayInputStream(outputBuffer.toByteArray())
+
+	    val nextFileTag = random.nextInt.toHexString
+	    val newFileName = fileNameBase + nextFileTag + ".wav"
+	    println("Opening " + newFileName + " after " + loudSamples + " loud samples and " + quietSamples + " quiet samples")
+	    val outputFile = new File(newFileName)
+
+		val baisFormat = new AudioFormat(
+				AudioFormat.Encoding.PCM_SIGNED,
+				decodedFormat.getSampleRate,
+				16,
+				decodedFormat.getChannels,
+				decodedFormat.getChannels * 2,
+				decodedFormat.getSampleRate,
+				true
+		    )
+	    
+	    val processedAudioInputStream = new AudioInputStream(bais,baisFormat,bais.available() / decodedFormat.getFrameSize)
+	    
+	    AudioSystem.write(processedAudioInputStream, AudioFileFormat.Type.WAVE, outputFile)
+
 	  }
 
-	  val newFileName = fileNameBase + nextFileTag + ".raw"
-	  println("Opening " + newFileName + " after " + loudSamples + " loud samples and " + quietSamples + " quiet samples")
-	  outputStream = new DataOutputStream(new FileOutputStream(newFileName))
-      nextFileTag = random.nextInt.toHexString
+	  outputBuffer = new ByteArrayOutputStream()
+	  outputStream = new DataOutputStream(outputBuffer)
+
       quietSamples = 0
       loudSamples = 0
       writingToFile = false
