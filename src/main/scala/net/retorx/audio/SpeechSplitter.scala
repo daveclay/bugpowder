@@ -15,6 +15,7 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 import java.io.InputStream
 import scala.util.Random
+import java.net.URL
 
 class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
   
@@ -140,9 +141,13 @@ object SpeechSplitter extends App {
   
 	override def main(args:Array[String]) {
 	
-		val fileName = args(0)
-		
-		val is = new FileInputStream(fileName)
+		var fileName = args(0)
+		val is =
+			if (fileName.indexOf(":") == -1)
+				new FileInputStream(fileName)
+			else
+			  	new URL(fileName).openStream()
+
 		if (is == null) {
 			println("Could not find file '" + fileName + "'.")
 			System.exit(1)
