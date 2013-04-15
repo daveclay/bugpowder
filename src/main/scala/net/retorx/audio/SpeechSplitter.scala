@@ -137,8 +137,8 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
 				AudioFormat.Encoding.PCM_SIGNED,
 				decodedFormat.getSampleRate,
 				16,
-				decodedFormat.getChannels,
-				decodedFormat.getChannels * 2,
+				1,
+				2,
 				decodedFormat.getSampleRate,
 				true
 		    )
