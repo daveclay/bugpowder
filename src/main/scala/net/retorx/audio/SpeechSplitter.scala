@@ -8,8 +8,6 @@ import java.util.Arrays
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
-import javax.sound.sampled.DataLine
-import javax.sound.sampled.SourceDataLine
 import java.io.DataOutputStream
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -25,9 +23,11 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
   
 	val random = new Random()
 	
+	val sampleStream = new SampleStream(inputStream)
+	
     var outputStream : DataOutputStream = null
 	var outputBuffer : ByteArrayOutputStream = null
-      
+	
 	var quietSamples = 0
 	var loudSamples = 0;
     
@@ -35,91 +35,47 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
     val secondsOfSilence = 0.1
     
     var writingToFile = false
-    
-    var decodedFormat : AudioFormat = null
-  
+      
     def split() {
 		swapOutputFile()
-		
-		var ais:AudioInputStream = null
+
 		try {
-			ais = AudioSystem.getAudioInputStream(new BufferedInputStream(inputStream))
-
-			val format = ais.getFormat
-			println("format is: " + format)
+			val samplesOfSilence = (sampleStream.sampleRate * secondsOfSilence)
+			println("Waiting for " + secondsOfSilence + "s of silence, which is " + samplesOfSilence + " frames at " + sampleStream.sampleRate + " Hz")
 			
-			decodedFormat = new AudioFormat(
-					AudioFormat.Encoding.PCM_SIGNED,
-					format.getSampleRate,
-					16,
-					format.getChannels,
-					format.getChannels * 2,
-					format.getSampleRate,
-					false
-			    )
-			
-			val decodedAis = AudioSystem.getAudioInputStream(decodedFormat, ais)
-
-			val bytesPerFrame = decodedFormat.getFrameSize
-			println("bytesPerFrame: " + bytesPerFrame)
-			
-			
-			val framesPerRead = 1024
-			
-			val framesOfSilence = (decodedFormat.getFrameRate() * secondsOfSilence)
-			println("Waiting for " + secondsOfSilence + "s of silence, which is " + framesOfSilence + " frames at " + decodedFormat.getFrameRate() + " Hz")
-			
-			val buf = new Array[Byte](framesPerRead * bytesPerFrame)
-			var totalFramesRead = 0
-			var numBytesRead = 0
-			
+			var sampleList : List[Short] = null
 			do {
-				numBytesRead = decodedAis.read(buf)
-				if (numBytesRead > 0) {
-					val numFramesRead = numBytesRead / bytesPerFrame
-					totalFramesRead += numFramesRead
+				sampleList = sampleStream.nextSample
+				
+				if (sampleList != null && sampleList.size > 0) {
+				
+					val channelOneSample = sampleList(0)
 					
-					val byteBuf = ByteBuffer.wrap(buf,0,numBytesRead)
-					if ( ! decodedFormat.isBigEndian ) {
-						byteBuf.order(ByteOrder.LITTLE_ENDIAN)
-					}
-
-					var i = 0
-					while (i < numBytesRead) {
-					  
-						val sample = byteBuf.getShort()
-						
-						if (Math.abs(sample) < silenceThreshold) {
-						  quietSamples += 1
-						} else {
-						  if (loudSamples == 0) {
-						    writingToFile = true
-						  }
-						  loudSamples += 1
-						  quietSamples = 0
-						}
-						
-						if (quietSamples > framesOfSilence) {
-						  if (loudSamples > 0) {
-						  	swapOutputFile()
-						  } else {
-						    quietSamples = 0
-						  }
-						}
-
-						if (writingToFile) {
-							outputStream.writeShort(sample)
-							if (decodedFormat.getChannels == 2) {
-							  outputStream.writeShort(byteBuf.getShort)
-							}
-						}
-						
-
-						i += bytesPerFrame
+					if (Math.abs(channelOneSample) < silenceThreshold) {
+					  quietSamples += 1
+					} else {
+					  if (loudSamples == 0) {
+					    writingToFile = true
+					  }
+					  loudSamples += 1
+					  quietSamples = 0
 					}
 					
+					if (quietSamples > samplesOfSilence) {
+					  if (loudSamples > 0) {
+					  	swapOutputFile()
+					  } else {
+					    quietSamples = 0
+					  }
+					}
+	
+					if (writingToFile) {
+					    for (sample <- sampleList)
+					    	outputStream.writeShort(sample)
+					}
 				}
-			} while (numBytesRead != -1)
+			} while (sampleList != null && sampleList.size > 0)
+			
 		}
       
     }
@@ -136,15 +92,15 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
 
 		val baisFormat = new AudioFormat(
 				AudioFormat.Encoding.PCM_SIGNED,
-				decodedFormat.getSampleRate,
+				sampleStream.sampleRate,
 				16,
-				decodedFormat.getChannels,
-				decodedFormat.getChannels * 2,
-				decodedFormat.getSampleRate,
+				sampleStream.channels,
+				sampleStream.channels * 2,
+				sampleStream.sampleRate,
 				true
 		    )
 	    
-	    val processedAudioInputStream = new AudioInputStream(bais,baisFormat,bais.available() / decodedFormat.getFrameSize)
+	    val processedAudioInputStream = new AudioInputStream(bais, baisFormat, bais.available() / baisFormat.getFrameSize)
 	    
 	    AudioSystem.write(processedAudioInputStream, AudioFileFormat.Type.WAVE, outputFile)
 
@@ -189,21 +145,32 @@ class SampleStream(inputStream : InputStream) {
 	var posInCurrentBuf = -1
 	
 	def sampleRate = decodedFormat.getSampleRate
+	def channels = decodedFormat.getChannels
 			
 	def nextSample : List[Short] = {
 	  if (posInCurrentBuf == -1 || posInCurrentBuf >= bytesInCurrentBuf) {
 		bytesInCurrentBuf = decodedAIS.read(buf)
-		posInCurrentBuf = 0;
-		byteBuf = ByteBuffer.wrap(buf,0,bytesInCurrentBuf)
-		if ( ! decodedFormat.isBigEndian ) {
-			byteBuf.order(ByteOrder.LITTLE_ENDIAN)
+		if (bytesInCurrentBuf > 0) {
+			posInCurrentBuf = 0;
+			byteBuf = ByteBuffer.wrap(buf,0,bytesInCurrentBuf)
+			if ( ! decodedFormat.isBigEndian ) {
+				byteBuf.order(ByteOrder.LITTLE_ENDIAN)
+			}
+		} else {
+		  return List[Short]()
 		}
 	  }
 	  
 	  val sampleList = new Array[Short](decodedFormat.getChannels)
 	  for (i <- 0 until decodedFormat.getChannels) {
-		sampleList(i) = byteBuf.getShort
-		posInCurrentBuf += 2 // I dunno, we've hard-coded 16 around, I'm confused.
+	    try {
+		    sampleList(i) = byteBuf.getShort
+			posInCurrentBuf += 2 // I dunno, we've hard-coded 16 around, I'm confused.
+	    } catch {
+	      case e : Exception => {
+	        List[Short]()
+	      }
+	    }
 	  }
 	  
 	  List.fromArray(sampleList)
