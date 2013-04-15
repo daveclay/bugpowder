@@ -40,22 +40,34 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
 
 			val format = ais.getFormat
 			println("format is: " + format)
+			
+			val decodedFormat = new AudioFormat(
+					AudioFormat.Encoding.PCM_SIGNED,
+					format.getSampleRate,
+					16,
+					format.getChannels,
+					format.getChannels * 2,
+					format.getSampleRate,
+					false
+			    )
+			
+			val decodedAis = AudioSystem.getAudioInputStream(decodedFormat, ais)
 
-			val bytesPerFrame = ais.getFormat.getFrameSize
+			val bytesPerFrame = decodedFormat.getFrameSize
 			println("bytesPerFrame: " + bytesPerFrame)
 			
 			
 			val framesPerRead = 1024
 			
-			val framesOfSilence = (format.getFrameRate() * secondsOfSilence)
-			println("Waiting for " + secondsOfSilence + "s of silence, which is " + framesOfSilence + " frames at " + format.getFrameRate() + " Hz")
+			val framesOfSilence = (decodedFormat.getFrameRate() * secondsOfSilence)
+			println("Waiting for " + secondsOfSilence + "s of silence, which is " + framesOfSilence + " frames at " + decodedFormat.getFrameRate() + " Hz")
 			
 			val buf = new Array[Byte](framesPerRead * bytesPerFrame)
 			var totalFramesRead = 0
 			var numBytesRead = 0
 
 			do {
-				numBytesRead = ais.read(buf)
+				numBytesRead = decodedAis.read(buf)
 				if (numBytesRead > 0) {
 					val numFramesRead = numBytesRead / bytesPerFrame
 					totalFramesRead += numFramesRead
@@ -63,11 +75,11 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
 					var i = 0
 					while (i < numBytesRead) {
 						val byteBuf = ByteBuffer.allocate(2)
-						if ( ! format.isBigEndian ) {
+						if ( ! decodedFormat.isBigEndian ) {
 							byteBuf.order(ByteOrder.LITTLE_ENDIAN)
 						}
 						
-						val bytesToProcess = bytesPerFrame / format.getChannels
+						val bytesToProcess = bytesPerFrame / decodedFormat.getChannels
 						for (j <- 0 until bytesToProcess) {
 							byteBuf.put(buf(i + j))
 						}
