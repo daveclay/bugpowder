@@ -12,6 +12,13 @@ import java.io.ByteArrayOutputStream
 import java.io.ByteArrayInputStream
 import java.io.File
 import javax.sound.sampled.AudioFileFormat
+import java.util.ArrayList
+import org.kohsuke.args4j.Argument
+import org.kohsuke.args4j.CmdLineParser
+import org.kohsuke.args4j.Option
+import java.util.Arrays
+import collection.JavaConversions._
+import org.kohsuke.args4j.CmdLineException
 
 class SpeechSplitter(inputStream:InputStream, fileNameBase:String, silencePercentage: Double, secondsOfSilence: Double) {
   
@@ -110,11 +117,26 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String, silencePercen
 	}
 }
 
-object SpeechSplitter extends App {
-  
-	override def main(args:Array[String]) {
-	
-		var fileName = args(0)
+class SpeechSplitterBuilder {
+
+	@Argument
+	val arguments = new ArrayList[String]
+    
+    @Option(name="-t",usage="seconds of silence to trigger a split")
+    var silenceTime = 0.125
+    
+    @Option(name="-a",usage="amplitude to serve as upper threshold of 'silence', as a percentage of max")
+    var silenceAmplitudePercentage = 0.035
+    
+    @Option(name="-o",usage="output file basename")
+    var outputFileBaseName : String = null
+    
+    def build : SpeechSplitter = {
+      println("silenceAmplitudePercentage is " + silenceAmplitudePercentage)
+      println("silenceTime is " + silenceTime)
+      println("Arguments are: " + arguments)
+      
+		var fileName = arguments(0)
 		val is =
 			if (fileName.indexOf(":") == -1)
 				new FileInputStream(fileName)
@@ -126,9 +148,40 @@ object SpeechSplitter extends App {
 			System.exit(1)
 		}
 
-		val speechSplitter = new SpeechSplitter(is,args(1),0.035,0.125)
+      	if (outputFileBaseName == null) {
+      	  var startIndex = 0
+      	  if (fileName.indexOf("/") > -1) {
+      	    startIndex = fileName.lastIndexOf("/") + 1
+      	  }
+      	  var endIndex = fileName.length
+      	  if (fileName.indexOf(".",startIndex) > -1) {
+      	    endIndex = fileName.indexOf(".",startIndex)
+      	  }
+      	  outputFileBaseName = fileName.substring(startIndex,endIndex) + "-"
+      	}
+      
+		new SpeechSplitter(is,outputFileBaseName,silenceAmplitudePercentage,silenceTime)
+	}
+}
+
+object SpeechSplitter extends App {
+  
+	override def main(args:Array[String]) {
+      
+      val speechSplitterBuilder = new SpeechSplitterBuilder
+
+      val cmdLineParser = new CmdLineParser(speechSplitterBuilder)
+      try {
+	      cmdLineParser.parseArgument(args.toSeq)
+      } catch {
+        case e: CmdLineException => {
+          println(e.getMessage)
+          cmdLineParser.printUsage(System.out)
+        }
+      }
 		
-		speechSplitter.split()
+      val speechSplitter = speechSplitterBuilder.build
+  	  speechSplitter.split()
 						
 	}
 	
