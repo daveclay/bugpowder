@@ -13,7 +13,7 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import javax.sound.sampled.AudioFileFormat
 
-class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
+class SpeechSplitter(inputStream:InputStream, fileNameBase:String, silencePercentage: Double, secondsOfSilence: Double) {
   
 	val random = new Random()
 	
@@ -25,16 +25,16 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String) {
 	var quietSamples = 0
 	var loudSamples = 0;
     
-    val silenceThreshold = 1500
-    val secondsOfSilence = 0.1
-    
     var writingToFile = false
       
     def split() {
 		swapOutputFile()
 
 		try {
+		  
+			val silenceThreshold = sampleStream.sampleRate * silencePercentage
 			val samplesOfSilence = (sampleStream.sampleRate * secondsOfSilence)
+			
 			println("Waiting for " + secondsOfSilence + "s of silence, which is " + samplesOfSilence + " samples at " + sampleStream.sampleRate + " Hz")
 			
 			var sampleList : List[Short] = null
@@ -125,8 +125,8 @@ object SpeechSplitter extends App {
 			println("Could not find file '" + fileName + "'.")
 			System.exit(1)
 		}
-		
-		val speechSplitter = new SpeechSplitter(is,args(1))
+
+		val speechSplitter = new SpeechSplitter(is,args(1),0.035,0.125)
 		
 		speechSplitter.split()
 						
