@@ -177,6 +177,7 @@ object SpeechSplitter extends App {
         case e: CmdLineException => {
           println(e.getMessage)
           cmdLineParser.printUsage(System.out)
+          sys.exit
         }
       }
 		
