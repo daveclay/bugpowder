@@ -12,7 +12,7 @@ object ExecService {
 
 }
 
-class ExecService(directory:String) {
+class ExecService(directory:String, debugIsOn:Boolean = false) {
     // Borrowed from
     // http://www.jroller.com/thebugslayer/entry/executing_external_system_commands_in
 
@@ -32,7 +32,7 @@ class ExecService(directory:String) {
 
     def exec(cmd : Array[String])(func : String=>Boolean) : Boolean = {
         try {
-            println(this + " running " + cmd.reduceLeft(_+" " +_) + " in " + directory)
+            debugPrint(this + " running " + cmd.reduceLeft(_+" " +_) + " in " + directory)
             val proc = newProc(cmd)
 
             val ins = new java.io.BufferedReader(new java.io.InputStreamReader(proc.getInputStream))
@@ -42,7 +42,7 @@ class ExecService(directory:String) {
                 def run() {
                     var ln : String = null
                     while({ln = ins.readLine; ln != null}) {
-                        println(directory + ": " + ln)
+                        debugPrint(directory + ": " + ln)
                         if (!func(ln)) {
                             success = false;
                             proc.destroy()
@@ -55,7 +55,7 @@ class ExecService(directory:String) {
 
             //suspense this main thread until sub process is done.
             val exitStatus = proc.waitFor
-            println("Exit status was " + exitStatus)
+            debugPrint("Exit status was " + exitStatus)
             success = exitStatus == 0
 
             //wait until output is fully read/completed.
@@ -66,7 +66,7 @@ class ExecService(directory:String) {
             success
         } catch {
             case e:IOException => {
-                println(this + " Failed executing " + cmd.reduceLeft(_+" " +_) + " in " + directory + ": " + e.getMessage)
+                debugPrint(this + " Failed executing " + cmd.reduceLeft(_+" " +_) + " in " + directory + ": " + e.getMessage)
                 throw e
             }
         }
@@ -82,5 +82,11 @@ class ExecService(directory:String) {
             true
         }
         ls
+    }
+    
+    def debugPrint(line : String) {
+      if (debugIsOn) {
+        println(line)
+      }
     }
 }
