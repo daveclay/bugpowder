@@ -25,6 +25,8 @@ class SampleStream(inputStream : InputStream) {
 
 	val bytesPerFrame = decodedFormat.getFrameSize
 	println("bytesPerFrame: " + bytesPerFrame)
+	
+	val sampleSizeInBits = decodedFormat.getSampleSizeInBits	
 
 	val framesPerRead = 1024
 
@@ -65,7 +67,7 @@ class SampleStream(inputStream : InputStream) {
 	    }
 	  }
 	  
-	  List.fromArray(sampleList)
+	  sampleList.toList
 	}
 }
 

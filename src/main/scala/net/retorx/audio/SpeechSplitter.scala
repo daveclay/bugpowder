@@ -6,6 +6,7 @@ import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
 import java.io.DataOutputStream
 import java.io.InputStream
+import scala.math._
 import scala.util.Random
 import java.net.URL
 import java.io.ByteArrayOutputStream
@@ -39,10 +40,11 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String, silencePercen
 
 		try {
 		  
-			val silenceThreshold = sampleStream.sampleRate * silencePercentage
+			val silenceThreshold = pow(2,sampleStream.sampleSizeInBits - 1) * silencePercentage
 			val samplesOfSilence = (sampleStream.sampleRate * secondsOfSilence)
 			
 			println("Waiting for " + secondsOfSilence + "s of silence, which is " + samplesOfSilence + " samples at " + sampleStream.sampleRate + " Hz")
+			println("Silence threshold is " + silencePercentage + " as a percentage of max, or " + silenceThreshold + " amplitude for signed " + sampleStream.sampleSizeInBits + " bit audio.")
 			
 			var sampleList : List[Short] = null
 			do {
@@ -136,7 +138,7 @@ class SpeechSplitterBuilder {
       println("silenceTime is " + silenceTime)
       println("Arguments are: " + arguments)
       
-		var fileName = arguments(0)
+		var fileName = arguments.get(0)
 		val is =
 			if (fileName.indexOf(":") == -1)
 				new FileInputStream(fileName)
