@@ -180,7 +180,18 @@ EBCS.prototype.handleAudioFileNameList = function(fileNames) {
 EBCS.prototype.playNextAudioFile = function() {
     var self = this;
     var audio = new Audio();
-    audio.src = this.audioFileNameList[this.nextAudioFileIdx];
+    var canPlayOgg = !!audio.canPlayType && audio.canPlayType('audio/ogg; codecs="vorbis"') != "";
+    var canPlayMP3 = !!audio.canPlayType && audio.canPlayType('audio/mpeg; codecs="mp3"') != "";
+    var extension;
+    if (canPlayOgg) {
+    	extension = ".ogg";
+    } else if (canPlayMP3) {
+    	extension = ".mp3";
+    } else {
+    	console.log("I can't play ogg or mp3, I guess I will give up.");
+    	return;
+    }
+    audio.src = this.audioFileNameList[this.nextAudioFileIdx] + extension;
     audio.addEventListener("ended", function() { self.playNextAudioFile() }, false);
     this.nextAudioFileIdx ++;
     if (this.nextAudioFileIdx == this.audioFileNameList.length) {

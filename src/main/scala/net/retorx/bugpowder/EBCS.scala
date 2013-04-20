@@ -76,7 +76,7 @@ class EBCS {
 	  	  return List()
 	  	}
 	  	
-	  	val fullDirectoryListing = audioDirectory.list().toList
+	  	val fullDirectoryListing = audioDirectory.list().toList.filter( fileName => fileName.endsWith(".mp3")).map(fileName => fileName.substring(0,fileName.lastIndexOf(".mp3")))
 	  	val returnVals = new Array[String](clipsPerGet)
 	  	for (i <- 0 until clipsPerGet) {
 	  		returnVals(i) = "api/fear/audioClip/" + fullDirectoryListing(random.nextInt(fullDirectoryListing.length))
