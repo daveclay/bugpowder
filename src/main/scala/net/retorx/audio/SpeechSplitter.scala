@@ -20,6 +20,7 @@ import org.kohsuke.args4j.Option
 import java.util.Arrays
 import collection.JavaConversions._
 import org.kohsuke.args4j.CmdLineException
+import net.retorx.util.ExecService
 
 class SpeechSplitter(inputStream:InputStream, fileNameBase:String, silencePercentage: Double, secondsOfSilence: Double) {
   
@@ -106,6 +107,31 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String, silencePercen
 	    val processedAudioInputStream = new AudioInputStream(bais, baisFormat, bais.available() / baisFormat.getFrameSize)
 	    
 	    AudioSystem.write(processedAudioInputStream, AudioFileFormat.Type.WAVE, outputFile)
+
+	    var success = false
+	    try {
+		    success = new ExecService(".").exec(Array("lame",newFileName)){ line =>
+		      if (line.indexOf("not found") > -1) {
+		        false
+		      } else {
+		        true
+		      }
+		    }
+	    } catch {
+	      case e : Exception => {
+	        e.printStackTrace()
+	      	success = false
+	      }
+	    }
+	    
+	    var finalFileName = newFileName
+	    if (success) {
+	      println("Successfully compressed MP3.")
+	      outputFile.delete()
+	      finalFileName = fileNameBase + nextFileTag + ".mp3"
+	    } else {
+	      println("FAILED MP3 COMPRESSION")
+	    }
 
 	  }
 
