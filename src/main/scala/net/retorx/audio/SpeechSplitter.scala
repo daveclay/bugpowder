@@ -22,7 +22,7 @@ import collection.JavaConversions._
 import org.kohsuke.args4j.CmdLineException
 import net.retorx.util.ExecService
 
-class SpeechSplitter(inputStream:InputStream, fileNameBase:String, silencePercentage: Double, secondsOfSilence: Double) {
+class SpeechSplitter(inputStream:InputStream, fileNameBase:String, silencePercentage: Double, secondsOfSilence: Double, outputDirectory : String = ".") {
   
 	val random = new Random()
 	
@@ -90,7 +90,7 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String, silencePercen
 	    val bais = new ByteArrayInputStream(outputBuffer.toByteArray())
 
 	    val nextFileTag = random.nextInt.toHexString
-	    val newFileName = fileNameBase + nextFileTag + ".wav"
+	    val newFileName = outputDirectory + "/" + fileNameBase + nextFileTag + ".wav"
 	    println("Opening " + newFileName + " after " + loudSamples + " loud samples and " + quietSamples + " quiet samples")
 	    val outputFile = new File(newFileName)
 
