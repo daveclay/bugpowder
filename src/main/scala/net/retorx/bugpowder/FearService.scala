@@ -29,9 +29,16 @@ class FearService @Inject() (fearBuilder: FearBuilder, megaphone: Megaphone, ebc
     }
     
     @GET
-    @Path("/audioClip/{fileName}")
+    @Path("/audioClip/{fileName}.ogg")
+    @Produces(Array("audio/ogg"))
+    def getOggAudioClip(@PathParam(value="fileName") clipPath : String) = {
+      ebcs.getAudioClip(clipPath + ".ogg")
+    }
+
+    @GET
+    @Path("/audioClip/{fileName}.mp3")
     @Produces(Array("audio/mpeg"))
-    def getAudioClip(@PathParam(value="fileName") clipPath : String) = {
-      ebcs.getAudioClip(clipPath)
+    def getMP3AudioClip(@PathParam(value="fileName") clipPath : String) = {
+      ebcs.getAudioClip(clipPath + ".mp3")
     }
 }

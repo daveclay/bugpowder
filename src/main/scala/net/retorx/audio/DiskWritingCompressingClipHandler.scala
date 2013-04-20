@@ -33,11 +33,24 @@ class DiskWritingCompressingClipHandler(fileNameBase : String, outputDirectory :
 	      }
 	    }
 	    
-	    var finalFileName = newFileName
+	    try {
+		    success = new ExecService(outputDirectory,false).exec(Array("oggenc",newFileName)){ line =>
+		      if (line.indexOf("not found") > -1) {
+		        false
+		      } else {
+		        true
+		      }
+		    }
+	    } catch {
+	      case e : Exception => {
+	        e.printStackTrace()
+	      	success = false
+	      }
+	    }
+
 	    if (success) {
-	      println("Successfully compressed MP3.")
+	      println("Successfully compressed MP3 and OGG.")
 	      outputFile.delete()
-	      finalFileName = fileNameBase + nextFileTag + ".mp3"
 	    } else {
 	      println("FAILED MP3 COMPRESSION")
 	    }
