@@ -11,6 +11,7 @@ import net.retorx.audio.SpeechSplitter
 import java.net.URL
 import java.util.Calendar
 import java.text.DecimalFormat
+import net.retorx.audio.DiskWritingCompressingClipHandler
 
 @Singleton
 class EBCS {
@@ -27,7 +28,7 @@ class EBCS {
               
         foxNewsMP3URLs.foreach( node => {
             try {
-        	    val speechSplitter = new SpeechSplitter(new URL(node.text).openStream,"foxnews-",0.035,0.125,audioDirectoryPath)
+        	    val speechSplitter = new SpeechSplitter(new URL(node.text).openStream,0.035,0.125,new DiskWritingCompressingClipHandler("foxnews-",audioDirectoryPath))
         	    speechSplitter.split()
             } catch {
                 case e : Exception => e.printStackTrace()
@@ -41,7 +42,7 @@ class EBCS {
         for (i <- 0 until 7) {
             val url = "http://gandalf.ddo.jp/mp3/" + cal.get(Calendar.YEAR).toString.substring(2) + twodigitformat.format(cal.get(Calendar.MONTH)+1) + twodigitformat.format(cal.get(Calendar.DAY_OF_MONTH)) + ".mp3"
             try {
-        	    val speechSplitter = new SpeechSplitter(new URL(url).openStream,"VOA-",0.035,0.125,audioDirectoryPath)
+        	    val speechSplitter = new SpeechSplitter(new URL(url).openStream,0.035,0.125,new DiskWritingCompressingClipHandler("VOA-",audioDirectoryPath))
         	    speechSplitter.split()
             } catch {
                 case e : Exception => e.printStackTrace()
@@ -56,7 +57,7 @@ class EBCS {
             attempted += 1
             val url = "http://traffic.libsyn.com/democracynow/dn" + cal.get(Calendar.YEAR) + "-" + twodigitformat.format(cal.get(Calendar.MONTH)+1) + twodigitformat.format(cal.get(Calendar.DAY_OF_MONTH)) + "-1.mp3"
             try {
-        	    val speechSplitter = new SpeechSplitter(new URL(url).openStream,"DemocracyNow-",0.035,0.125,audioDirectoryPath)
+        	    val speechSplitter = new SpeechSplitter(new URL(url).openStream,0.035,0.125,new DiskWritingCompressingClipHandler("DemocracyNow-",audioDirectoryPath))
         	    speechSplitter.split()
         	    successfullyProcessed += 1
             } catch {

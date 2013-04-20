@@ -20,12 +20,13 @@ import org.kohsuke.args4j.Option
 import java.util.Arrays
 import collection.JavaConversions._
 import org.kohsuke.args4j.CmdLineException
-import net.retorx.util.ExecService
 
-class SpeechSplitter(inputStream:InputStream, fileNameBase:String, silencePercentage: Double, secondsOfSilence: Double, outputDirectory : String = ".") {
+trait ClipHandler {
+  def handleClip(clip : AudioInputStream)
+}
+
+class SpeechSplitter(inputStream:InputStream, silencePercentage: Double, secondsOfSilence: Double, clipHandler : ClipHandler) {
   
-	val random = new Random()
-	
 	val sampleStream = new SampleStream(inputStream)
 	
     var outputStream : DataOutputStream = null
@@ -34,10 +35,10 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String, silencePercen
 	var quietSamples = 0
 	var loudSamples = 0;
     
-    var writingToFile = false
+    var writingToClip = false
       
     def split() {
-		swapOutputFile()
+		closeClip()
 
 		try {
 		  
@@ -59,7 +60,7 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String, silencePercen
 					  quietSamples += 1
 					} else {
 					  if (loudSamples == 0) {
-					    writingToFile = true
+					    writingToClip = true
 					  }
 					  loudSamples += 1
 					  quietSamples = 0
@@ -67,13 +68,13 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String, silencePercen
 					
 					if (quietSamples > samplesOfSilence) {
 					  if (loudSamples > 0) {
-					  	swapOutputFile()
+					  	closeClip()
 					  } else {
 					    quietSamples = 0
 					  }
 					}
 	
-					if (writingToFile) {
+					if (writingToClip) {
 					    for (sample <- sampleList)
 					    	outputStream.writeShort(sample)
 					}
@@ -84,15 +85,12 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String, silencePercen
       
     }
     
-	private def swapOutputFile() {
+	private def closeClip() {
+
+	  println("Closing clip after " + loudSamples + " loud samples and " + quietSamples + " quiet samples")
 
 	  if (outputBuffer != null) {	    
 	    val bais = new ByteArrayInputStream(outputBuffer.toByteArray())
-
-	    val nextFileTag = random.nextInt.toHexString
-	    val newFileName = outputDirectory + "/" + fileNameBase + nextFileTag + ".wav"
-	    println("Opening " + newFileName + " after " + loudSamples + " loud samples and " + quietSamples + " quiet samples")
-	    val outputFile = new File(newFileName)
 
 		val baisFormat = new AudioFormat(
 				AudioFormat.Encoding.PCM_SIGNED,
@@ -106,33 +104,8 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String, silencePercen
 	    
 	    val processedAudioInputStream = new AudioInputStream(bais, baisFormat, bais.available() / baisFormat.getFrameSize)
 	    
-	    AudioSystem.write(processedAudioInputStream, AudioFileFormat.Type.WAVE, outputFile)
-
-	    var success = false
-	    try {
-		    success = new ExecService(".").exec(Array("lame",newFileName)){ line =>
-		      if (line.indexOf("not found") > -1) {
-		        false
-		      } else {
-		        true
-		      }
-		    }
-	    } catch {
-	      case e : Exception => {
-	        e.printStackTrace()
-	      	success = false
-	      }
-	    }
+	    clipHandler.handleClip(processedAudioInputStream)
 	    
-	    var finalFileName = newFileName
-	    if (success) {
-	      println("Successfully compressed MP3.")
-	      outputFile.delete()
-	      finalFileName = fileNameBase + nextFileTag + ".mp3"
-	    } else {
-	      println("FAILED MP3 COMPRESSION")
-	    }
-
 	  }
 
 	  outputBuffer = new ByteArrayOutputStream()
@@ -140,8 +113,7 @@ class SpeechSplitter(inputStream:InputStream, fileNameBase:String, silencePercen
 
       quietSamples = 0
       loudSamples = 0
-      writingToFile = false
-
+      writingToClip = false
 	}
 }
 
@@ -188,7 +160,7 @@ class SpeechSplitterBuilder {
       	  outputFileBaseName = fileName.substring(startIndex,endIndex) + "-"
       	}
       
-		new SpeechSplitter(is,outputFileBaseName,silenceAmplitudePercentage,silenceTime)
+		new SpeechSplitter(is,silenceAmplitudePercentage,silenceTime, new DiskWritingCompressingClipHandler(outputFileBaseName,"."))
 	}
 }
 
