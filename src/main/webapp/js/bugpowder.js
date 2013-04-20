@@ -3,6 +3,8 @@ $(document).ready(function() {
     fear.load();
     var ticker = new Ticker();
     ticker.load();
+    var ebcs = new EBCS();
+    ebcs.load();
 });
 
 function Ticker() {
@@ -155,6 +157,42 @@ Fear.prototype.show = function(image) {
 
 Fear.prototype.startSequence = function() {
     this.timer.start();
+};
+
+function EBCS() {
+    this.audioFileNameList = Array();
+    this.nextAudioFileIdx = -1;
+};
+
+EBCS.prototype.load = function() {
+    var self = this;
+    get("fear/audio", function(audioClips) {
+    	self.handleAudioFileNameList(audioClips);
+    });
+};
+
+EBCS.prototype.handleAudioFileNameList = function(fileNames) {
+    var self = this;
+    this.audioFileNameList = fileNames;
+    this.startPlayingAudio();
+};
+
+EBCS.prototype.playNextAudioFile = function() {
+    var self = this;
+    var audio = new Audio();
+    audio.src = this.audioFileNameList[this.nextAudioFileIdx];
+    audio.addEventListener("ended", function() { self.playNextAudioFile() }, false);
+    this.nextAudioFileIdx ++;
+    if (this.nextAudioFileIdx == this.audioFileNameList.length) {
+        this.nextAudioFileIdx = 0;
+    }
+    audio.play();
+};
+
+EBCS.prototype.startPlayingAudio = function() {
+    var self = this;
+    this.nextAudioFileIdx = 0;
+    this.playNextAudioFile();
 };
 
 function Randomer() {
