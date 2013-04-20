@@ -19,6 +19,14 @@
         <resteasy.version>2.3.4.Final</resteasy.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>com.springsource.repository.bundles.external</id>
+            <name>SpringSource Enterprise Bundle Repository - External Bundle Releases</name>
+            <url>http://repository.springsource.com/maven/bundles/external</url>
+        </repository>
+    </repositories>
+
     <dependencies>
 
         <dependency>
