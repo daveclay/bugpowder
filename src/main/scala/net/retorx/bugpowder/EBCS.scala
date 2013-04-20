@@ -39,7 +39,7 @@ class EBCS {
         var cal = Calendar.getInstance()
 
         for (i <- 0 until 7) {
-            val url = "http://gandalf.ddo.jp/mp3/" + cal.get(Calendar.YEAR).toString.substring(2) + twodigitformat.format(cal.get(Calendar.MONTH)) + twodigitformat.format(cal.get(Calendar.DAY_OF_MONTH)) + ".mp3"
+            val url = "http://gandalf.ddo.jp/mp3/" + cal.get(Calendar.YEAR).toString.substring(2) + twodigitformat.format(cal.get(Calendar.MONTH)+1) + twodigitformat.format(cal.get(Calendar.DAY_OF_MONTH)) + ".mp3"
             try {
         	    val speechSplitter = new SpeechSplitter(new URL(url).openStream,"VOA-",0.035,0.125,audioDirectoryPath)
         	    speechSplitter.split()
@@ -52,9 +52,9 @@ class EBCS {
         cal = Calendar.getInstance()
         var successfullyProcessed = 0
         var attempted = 0
-        while (successfullyProcessed < 2 && attempted < 7) {
+        while (successfullyProcessed < 1 && attempted < 7) {
             attempted += 1
-            val url = "http://traffic.libsyn.com/democracynow/dn" + cal.get(Calendar.YEAR) + "-" + twodigitformat.format(cal.get(Calendar.MONTH)) + twodigitformat.format(cal.get(Calendar.DAY_OF_MONTH)) + "-1.mp3"
+            val url = "http://traffic.libsyn.com/democracynow/dn" + cal.get(Calendar.YEAR) + "-" + twodigitformat.format(cal.get(Calendar.MONTH)+1) + twodigitformat.format(cal.get(Calendar.DAY_OF_MONTH)) + "-1.mp3"
             try {
         	    val speechSplitter = new SpeechSplitter(new URL(url).openStream,"DemocracyNow-",0.035,0.125,audioDirectoryPath)
         	    speechSplitter.split()
