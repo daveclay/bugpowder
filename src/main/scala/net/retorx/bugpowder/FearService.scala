@@ -5,7 +5,7 @@ import com.google.inject.{Inject, Singleton}
 
 @Singleton
 @Path("/fear")
-class FearService @Inject() (fearBuilder: FearBuilder, megaphone: Megaphone) {
+class FearService @Inject() (fearBuilder: FearBuilder, megaphone: Megaphone, ebcs : EBCS) {
 
     @GET
     @Path("/images")
@@ -19,5 +19,12 @@ class FearService @Inject() (fearBuilder: FearBuilder, megaphone: Megaphone) {
     @Produces(Array("text/json"))
     def getFeeds = {
         megaphone.getCutups
+    }
+    
+    @GET
+    @Path("/audio")
+    @Produces(Array("text/json"))
+    def getAudio = {
+        ebcs.getAudioClips
     }
 }
