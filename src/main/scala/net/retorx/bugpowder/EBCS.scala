@@ -10,7 +10,7 @@ import java.io.FileInputStream
 @Singleton
 class EBCS {
     val audioDirectoryPath = "./audioClips"
-    val clipsPerGet = 20
+    val clipsPerGet = 40
     val random = new Random
 
     def getAudioClips : List[String] = {
