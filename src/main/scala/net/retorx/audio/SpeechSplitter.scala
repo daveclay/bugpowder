@@ -21,8 +21,12 @@ import java.util.Arrays
 import collection.JavaConversions._
 import org.kohsuke.args4j.CmdLineException
 
+class Clip(val audioStream : AudioInputStream, val positionInOriginal : Long) {
+
+}
+
 trait ClipHandler {
-  def handleClip(clip : AudioInputStream)
+  def handleClip(clip : Clip)
 }
 
 class SpeechSplitter(inputStream:InputStream, silencePercentage: Double, secondsOfSilence: Double, clipHandler : ClipHandler) {
@@ -32,8 +36,11 @@ class SpeechSplitter(inputStream:InputStream, silencePercentage: Double, seconds
     var outputStream : DataOutputStream = null
 	var outputBuffer : ByteArrayOutputStream = null
 	
+	var samplesRead = 0L
+	var currentClipStartPosInOriginalStream = 0L
+	
 	var quietSamples = 0
-	var loudSamples = 0;
+	var loudSamples = 0
     
     var writingToClip = false
       
@@ -60,6 +67,7 @@ class SpeechSplitter(inputStream:InputStream, silencePercentage: Double, seconds
 					  quietSamples += 1
 					} else {
 					  if (loudSamples == 0) {
+					    currentClipStartPosInOriginalStream = samplesRead
 					    writingToClip = true
 					  }
 					  loudSamples += 1
@@ -79,6 +87,7 @@ class SpeechSplitter(inputStream:InputStream, silencePercentage: Double, seconds
 					    	outputStream.writeShort(sample)
 					}
 				}
+				samplesRead += 1
 			} while (sampleList != null && sampleList.size > 0)
 			
 		}
@@ -104,7 +113,7 @@ class SpeechSplitter(inputStream:InputStream, silencePercentage: Double, seconds
 	    
 	    val processedAudioInputStream = new AudioInputStream(bais, baisFormat, bais.available() / baisFormat.getFrameSize)
 	    
-	    clipHandler.handleClip(processedAudioInputStream)
+	    clipHandler.handleClip(new Clip(processedAudioInputStream,currentClipStartPosInOriginalStream / (sampleStream.sampleRate / 1000).toLong))
 	    
 	  }
 
