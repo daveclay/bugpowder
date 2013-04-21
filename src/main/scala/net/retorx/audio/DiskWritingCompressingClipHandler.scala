@@ -9,13 +9,13 @@ import java.io.File
 class DiskWritingCompressingClipHandler(fileNameBase : String, outputDirectory : String = ".") extends ClipHandler {
   val random = new Random()
 	
-  override def handleClip(clip : AudioInputStream) {
+  override def handleClip(clip : Clip) {
 	    val nextFileTag = random.nextInt.toHexString
 	    val newFileName = outputDirectory + "/" + fileNameBase + nextFileTag + ".wav"
-	    println("Writing " + newFileName + ".");
+	    println("Writing " + newFileName + ", from the " + clip.positionInOriginal + "th millisecond.");
 	    val outputFile = new File(newFileName)
 	    
-	    AudioSystem.write(clip, AudioFileFormat.Type.WAVE, outputFile)
+	    AudioSystem.write(clip.audioStream, AudioFileFormat.Type.WAVE, outputFile)
 
 	    var success = false
 	    try {
