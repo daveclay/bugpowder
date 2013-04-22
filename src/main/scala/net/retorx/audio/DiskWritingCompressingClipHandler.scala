@@ -11,9 +11,10 @@ class DiskWritingCompressingClipHandler(fileNameBase : String, outputDirectory :
   
   override def handleClip(clip : Clip) {
 	    val nextFileTag = random.nextInt.toHexString
-	    val newFileName = outputDirectory + "/" + fileNameBase + nextFileTag + ".wav"
+	    val newFileName = fileNameBase + nextFileTag + ".wav"
+	    val newFilePath = outputDirectory + "/" + newFileName
 	    println("Writing " + newFileName + ", from the " + clip.positionInOriginal + "th millisecond.");
-	    val outputFile = new File(newFileName)
+	    val outputFile = new File(newFilePath)
 	    
 	    AudioSystem.write(clip.audioStream, AudioFileFormat.Type.WAVE, outputFile)
 	    

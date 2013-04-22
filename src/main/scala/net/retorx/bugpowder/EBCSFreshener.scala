@@ -7,6 +7,7 @@ import java.util.Calendar
 import net.retorx.audio.DiskWritingCompressingClipHandler
 import java.io.File
 import com.google.inject.Singleton
+import net.retorx.audio.AudioCompressor
 
 @Singleton
 class EBCSFreshener(audioClipDirectory : String) {
@@ -16,7 +17,6 @@ class EBCSFreshener(audioClipDirectory : String) {
         freshen()
       }
     }.start()
-
     
 	
     def freshen() {
@@ -24,6 +24,9 @@ class EBCSFreshener(audioClipDirectory : String) {
     	    println("Audio clip directory '" + audioClipDirectory + " is not an existing, writable directory. Not bothering to download audio.")
     	    return
     	}
+    	
+    	compressStragglingWavFiles()
+    	
         val foxNewsMP3URLs =
           (XML.load(new URL("http://feeds.foxnewsradio.com/foxnewsradiocom"))
               \\ "enclosure" \\ "@url").filter( url => url.text.endsWith("3") )
@@ -73,6 +76,13 @@ class EBCSFreshener(audioClipDirectory : String) {
     private def validateOutputDirectory(directory : String) : Boolean = {
         val directoryFile = new File(directory)
         directoryFile.exists() && directoryFile.isDirectory() && directoryFile.canWrite()
+    }
+    
+    private def compressStragglingWavFiles() {
+	  	val fullDirectoryWavListing = new File(audioClipDirectory).list().toList.filter( fileName => fileName.endsWith(".wav") )
+	  	fullDirectoryWavListing.foreach( wavFileName =>
+	  	  new AudioCompressor(audioClipDirectory, wavFileName).attemptCompression()
+	  	)
     }
     
 }
