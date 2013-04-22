@@ -8,6 +8,9 @@ import net.retorx.audio.DiskWritingCompressingClipHandler
 import java.io.File
 import com.google.inject.Singleton
 import net.retorx.audio.AudioCompressor
+import scala.io.Source
+import java.io.PrintWriter
+import java.io.FileOutputStream
 
 @Singleton
 class EBCSFreshener(audioClipDirectory : String) {
@@ -45,14 +48,31 @@ class EBCSFreshener(audioClipDirectory : String) {
     	
     	compressStragglingWavFiles()
     	
+    	val freshenerHistoryPath = audioClipDirectory + "/" + ".freshener-history"
+    	val historyFile = new File(freshenerHistoryPath)
+    	if (!historyFile.exists()) {
+    	  println("Creating new history file.")
+    	  historyFile.createNewFile()
+    	}
+    	val historyFileWriter = new PrintWriter(new FileOutputStream(historyFile,true))
+    	
+    	val processedURLs = Source.fromFile(freshenerHistoryPath).getLines.toList
+    	    	
         val foxNewsMP3URLs =
           (XML.load(new URL("http://feeds.foxnewsradio.com/foxnewsradiocom"))
               \\ "enclosure" \\ "@url").filter( url => url.text.endsWith("3") )
               
         foxNewsMP3URLs.foreach( node => {
             try {
-        	    val speechSplitter = new SpeechSplitter(new URL(node.text).openStream,0.035,0.125,new DiskWritingCompressingClipHandler("foxnews-",audioClipDirectory))
-        	    speechSplitter.split()
+            	val urlString = node.text
+            	if ( ! processedURLs.contains(urlString) ) {
+	        	    val speechSplitter = new SpeechSplitter(new URL(urlString).openStream,0.035,0.125,new DiskWritingCompressingClipHandler("foxnews-",audioClipDirectory))
+	        	    speechSplitter.split()
+ 	        	    historyFileWriter.println(urlString)
+ 	        	    historyFileWriter.flush()
+            	} else {
+            		println("Already processed " + urlString + ".")
+            	}
             } catch {
                 case e : Exception => e.printStackTrace()
             }
@@ -65,8 +85,14 @@ class EBCSFreshener(audioClipDirectory : String) {
         for (i <- 0 until 7) {
             val url = "http://gandalf.ddo.jp/mp3/" + cal.get(Calendar.YEAR).toString.substring(2) + twodigitformat.format(cal.get(Calendar.MONTH)+1) + twodigitformat.format(cal.get(Calendar.DAY_OF_MONTH)) + ".mp3"
             try {
-        	    val speechSplitter = new SpeechSplitter(new URL(url).openStream,0.035,0.125,new DiskWritingCompressingClipHandler("VOA-",audioClipDirectory))
-        	    speechSplitter.split()
+            	if ( ! processedURLs.contains(url) ) {
+	        	    val speechSplitter = new SpeechSplitter(new URL(url).openStream,0.035,0.125,new DiskWritingCompressingClipHandler("VOA-",audioClipDirectory))
+	        	    speechSplitter.split()
+ 	        	    historyFileWriter.println(url)
+ 	        	    historyFileWriter.flush()
+            	} else {
+            		println("Already processed " + url + ".")
+            	}
             } catch {
                 case e : Exception => e.printStackTrace()
             }
@@ -80,15 +106,22 @@ class EBCSFreshener(audioClipDirectory : String) {
             attempted += 1
             val url = "http://traffic.libsyn.com/democracynow/dn" + cal.get(Calendar.YEAR) + "-" + twodigitformat.format(cal.get(Calendar.MONTH)+1) + twodigitformat.format(cal.get(Calendar.DAY_OF_MONTH)) + "-1.mp3"
             try {
-        	    val speechSplitter = new SpeechSplitter(new URL(url).openStream,0.035,0.125,new DiskWritingCompressingClipHandler("DemocracyNow-",audioClipDirectory))
-        	    speechSplitter.split()
-        	    successfullyProcessed += 1
-            } catch {
+            	if ( ! processedURLs.contains(url) ) {
+	        	    val speechSplitter = new SpeechSplitter(new URL(url).openStream,0.035,0.125,new DiskWritingCompressingClipHandler("DemocracyNow-",audioClipDirectory))
+	        	    speechSplitter.split()
+	        	    successfullyProcessed += 1
+ 	        	    historyFileWriter.println(url)
+ 	        	    historyFileWriter.flush()
+            	} else {
+            		println("Already processed " + url + ".")
+	        	    successfullyProcessed += 1
+            	}
+           } catch {
                 case e : Exception => e.printStackTrace()
             }
             cal.roll(Calendar.DAY_OF_MONTH,-1)
         }
-        
+        historyFileWriter.close()
     }
     
     private def validateOutputDirectory(directory : String) : Boolean = {
@@ -102,5 +135,5 @@ class EBCSFreshener(audioClipDirectory : String) {
 	  	  new AudioCompressor(audioClipDirectory, wavFileName).attemptCompression()
 	  	)
     }
-    
+
 }
