@@ -160,41 +160,58 @@ Fear.prototype.startSequence = function() {
 };
 
 function EBCS() {
-    this.audioFileNameList = Array();
+    this.audioClipSpecList = Array();
     this.nextAudioFileIdx = -1;
 };
 
 EBCS.prototype.load = function() {
     var self = this;
     get("fear/audio", function(audioClips) {
-    	self.handleAudioFileNameList(audioClips);
+    	self.handleAudioClipSpecList(audioClips);
     });
 };
 
-EBCS.prototype.handleAudioFileNameList = function(fileNames) {
+EBCS.prototype.handleAudioClipSpecList = function(fileNames) {
     var self = this;
-    this.audioFileNameList = fileNames;
+    this.audioClipSpecList = fileNames;
     this.startPlayingAudio();
 };
 
 EBCS.prototype.playNextAudioFile = function() {
     var self = this;
     var audio = new Audio();
+    
+    var nextAudioFileSpec = this.audioClipSpecList[this.nextAudioFileIdx];
+    
     var canPlayOgg = !!audio.canPlayType && audio.canPlayType('audio/ogg; codecs="vorbis"') != "";
     var canPlayMP3 = !!audio.canPlayType && audio.canPlayType('audio/mpeg; codecs="mp3"') != "";
-    var extension;
-    if (canPlayOgg) {
-    	extension = ".ogg";
-    } else if (canPlayMP3) {
-    	extension = ".mp3";
-    } else {
-    	console.log("I can't play ogg or mp3, I guess I will give up.");
-    	return;
+    var canPlayWAV = !!audio.canPlayType && audio.canPlayType('audio/wave') != "";
+    
+    var extension = "";
+    
+    for (i = 0; i < nextAudioFileSpec.formats.length; i++) {
+    	var format = nextAudioFileSpec.formats[i];
+    	if (format == "ogg" && canPlayOgg) {
+    		extension = ".ogg";
+    		break;
+    	} else if (format == "mp3" && canPlayMP3) {
+    		extension = ".mp3";
+    		break;
+    	} else if (format == "wav" && canPlayWAV) {
+    		extension = ".wav";
+    		break;
+    	}
     }
-    audio.src = this.audioFileNameList[this.nextAudioFileIdx] + extension;
+    
+    if (extension == "") {
+    	console.log("I can't play ogg or mp3 or wav, I guess I will give up.");
+    	return;
+	}
+    
+    audio.src = nextAudioFileSpec.file + extension
     audio.addEventListener("ended", function() { self.playNextAudioFile() }, false);
     this.nextAudioFileIdx ++;
-    if (this.nextAudioFileIdx == this.audioFileNameList.length) {
+    if (this.nextAudioFileIdx == this.audioClipSpecList.length) {
         this.nextAudioFileIdx = 0;
     }
     audio.play();

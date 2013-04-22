@@ -41,4 +41,11 @@ class FearService @Inject() (fearBuilder: FearBuilder, megaphone: Megaphone, ebc
     def getMP3AudioClip(@PathParam(value="fileName") clipPath : String) = {
       ebcs.getAudioClip(clipPath + ".mp3")
     }
+
+    @GET
+    @Path("/audioClip/{fileName}.wav")
+    @Produces(Array("audio/wave"))
+    def getWAVAudioClip(@PathParam(value="fileName") clipPath : String) = {
+      ebcs.getAudioClip(clipPath + ".wav")
+    }
 }
