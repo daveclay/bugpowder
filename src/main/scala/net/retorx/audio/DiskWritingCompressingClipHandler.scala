@@ -8,7 +8,9 @@ import java.io.File
 
 class DiskWritingCompressingClipHandler(fileNameBase : String, outputDirectory : String = ".") extends ClipHandler {
   val random = new Random()
-	
+  val lameAvailable = attemptToRunCommandLine("lame --help")
+  val oggencAvailable = attemptToRunCommandLine("oggenc -h")
+  
   override def handleClip(clip : Clip) {
 	    val nextFileTag = random.nextInt.toHexString
 	    val newFileName = outputDirectory + "/" + fileNameBase + nextFileTag + ".wav"
@@ -18,44 +20,59 @@ class DiskWritingCompressingClipHandler(fileNameBase : String, outputDirectory :
 	    AudioSystem.write(clip.audioStream, AudioFileFormat.Type.WAVE, outputFile)
 
 	    var success = false
-	    try {
-		    success = new ExecService(outputDirectory,false).exec(Array("lame",newFileName)){ line =>
-		      if (line.indexOf("not found") > -1) {
-		        false
-		      } else {
-		        true
+	    if (lameAvailable) {
+		    try {
+			    success = new ExecService(outputDirectory,false).exec(Array("lame",newFileName)){ line =>
+			      if (line.indexOf("not found") > -1) {
+			        false
+			      } else {
+			        true
+			      }
+			    }
+		    } catch {
+		      case e : Exception => {
+		        e.printStackTrace()
+		      	success = false
 		      }
 		    }
-	    } catch {
-	      case e : Exception => {
-	        e.printStackTrace()
-	      	success = false
-	      }
-	    }
+  		}
 	    
-	    try {
-		    success = new ExecService(outputDirectory,false).exec(Array("oggenc",newFileName)){ line =>
-		      if (line.indexOf("not found") > -1) {
-		        false
-		      } else {
-		        true
+	    if (oggencAvailable) {
+		    try {
+			    success = new ExecService(outputDirectory,false).exec(Array("oggenc",newFileName)){ line =>
+			      if (line.indexOf("not found") > -1) {
+			        false
+			      } else {
+			        true
+			      }
+			    }
+		    } catch {
+		      case e : Exception => {
+		        e.printStackTrace()
+		      	success = false
 		      }
 		    }
-	    } catch {
-	      case e : Exception => {
-	        e.printStackTrace()
-	      	success = false
-	      }
 	    }
 
-	    if (success) {
-	      println("Successfully compressed MP3 and OGG.")
+	    if (lameAvailable && oggencAvailable && success) {
+	      println("Successfully compressed MP3 and/or OGG.")
 	      outputFile.delete()
 	    } else {
-	      println("FAILED MP3 COMPRESSION")
+	      println("FAILED MP3 and/or OGG COMPRESSION")
 	    }
 
 	    
+  }
+  
+  private def attemptToRunCommandLine(command : String) : Boolean = {
+    val execService = new ExecService(".",false)
+    var success = false
+    try {
+      success = execService.exec(command){ line => true }
+    } catch {
+      case e : Exception => e.printStackTrace()
+    }
+    success
   }
 }
 
