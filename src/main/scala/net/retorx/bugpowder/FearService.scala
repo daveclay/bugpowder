@@ -5,7 +5,7 @@ import com.google.inject.{Inject, Singleton}
 
 @Singleton
 @Path("/fear")
-class FearService @Inject() (fearBuilder: FearBuilder, megaphone: Megaphone, ebcs : EBCS) {
+class FearService @Inject() (fearBuilder: FearBuilder, megaphone: Megaphone, ebcs : EBCS, ebcsFreshener : EBCSFreshener) {
 
     @GET
     @Path("/images")
@@ -47,5 +47,11 @@ class FearService @Inject() (fearBuilder: FearBuilder, megaphone: Megaphone, ebc
     @Produces(Array("audio/wave"))
     def getWAVAudioClip(@PathParam(value="fileName") clipPath : String) = {
       ebcs.getAudioClip(clipPath + ".wav")
+    }
+    
+    @POST
+    @Path("/freshenEBCS")
+    def freshenEBCS {
+      ebcsFreshener.freshen()
     }
 }

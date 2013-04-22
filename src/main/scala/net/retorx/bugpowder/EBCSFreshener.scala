@@ -6,7 +6,9 @@ import java.text.DecimalFormat
 import java.util.Calendar
 import net.retorx.audio.DiskWritingCompressingClipHandler
 import java.io.File
+import com.google.inject.Singleton
 
+@Singleton
 class EBCSFreshener(audioClipDirectory : String) {
   
     new Thread() {
