@@ -2,10 +2,10 @@ package net.retorx.web
 
 import javax.servlet.{ServletContext, ServletContextEvent, ServletContextListener}
 import org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap
-
 import org.jboss.resteasy.spi.Registry
 import org.jboss.resteasy.spi.ResteasyProviderFactory
 import net.retorx.bugpowder.{CNN, BugPowderModule}
+import net.retorx.bugpowder.EBCSFreshener
 
 class StartupListener extends ResteasyBootstrap with ServletContextListener {
 
@@ -26,7 +26,8 @@ class StartupListener extends ResteasyBootstrap with ServletContextListener {
 
         val module = new BugPowderModule()
         val injector = processor.process(module)
-        //val fuckshit = injector.getInstance(classOf[CNN])
+        
+        val ebcsFreshener = injector.getInstance(classOf[EBCSFreshener])
 
         println("done!")
 	}
