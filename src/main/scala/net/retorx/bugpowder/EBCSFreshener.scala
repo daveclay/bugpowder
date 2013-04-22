@@ -5,6 +5,7 @@ import net.retorx.audio.SpeechSplitter
 import java.text.DecimalFormat
 import java.util.Calendar
 import net.retorx.audio.DiskWritingCompressingClipHandler
+import java.io.File
 
 class EBCSFreshener(audioClipDirectory : String) {
   
@@ -17,6 +18,10 @@ class EBCSFreshener(audioClipDirectory : String) {
     
 	
     def freshen() {
+    	if (!validateOutputDirectory(audioClipDirectory)) {
+    	    println("Audio clip directory '" + audioClipDirectory + " is not an existing, writable directory. Not bothering to download audio.")
+    	    return
+    	}
         val foxNewsMP3URLs =
           (XML.load(new URL("http://feeds.foxnewsradio.com/foxnewsradiocom"))
               \\ "enclosure" \\ "@url").filter( url => url.text.endsWith("3") )
@@ -62,4 +67,10 @@ class EBCSFreshener(audioClipDirectory : String) {
         }
         
     }
+    
+    private def validateOutputDirectory(directory : String) : Boolean = {
+        val directoryFile = new File(directory)
+        directoryFile.exists() && directoryFile.isDirectory() && directoryFile.canWrite()
+    }
+    
 }
