@@ -12,14 +12,32 @@ import net.retorx.audio.AudioCompressor
 @Singleton
 class EBCSFreshener(audioClipDirectory : String) {
   
-    new Thread() {
-      override def run() {
-        freshen()
-      }
-    }.start()
+	var fresheningThread : Thread = null
+  
+    def freshen() {
+	  if (status == "Idle") {
+		  fresheningThread = new Thread() {
+	        override def run() {
+	          doFreshen()
+	          fresheningThread = null
+	        }
+	      }
+		  fresheningThread.start()
+	  }
+	}
+	
+	def status() : String = {
+	  if (fresheningThread == null) {
+	    return "Idle";
+	  } else if (fresheningThread.isAlive()) {
+	    return "Running";
+	  } else {
+	    return "Something Odd";
+	  }
+	}
     
 	
-    def freshen() {
+    private def doFreshen() {
     	if (!validateOutputDirectory(audioClipDirectory)) {
     	    println("Audio clip directory '" + audioClipDirectory + " is not an existing, writable directory. Not bothering to download audio.")
     	    return

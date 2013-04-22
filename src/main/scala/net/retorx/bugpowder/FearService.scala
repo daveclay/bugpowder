@@ -54,4 +54,10 @@ class FearService @Inject() (fearBuilder: FearBuilder, megaphone: Megaphone, ebc
     def freshenEBCS {
       ebcsFreshener.freshen()
     }
+    
+    @GET
+    @Path("/freshenerStatus")
+    def freshenerStatus = {
+      ebcsFreshener.status
+    }
 }
