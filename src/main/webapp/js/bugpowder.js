@@ -185,10 +185,7 @@ EBCS.prototype.startPlayingAudio = function() {
         var formatsArray = audioClipSpec.formats;
         var sound = new buzz.sound(file, { formats: formatsArray });
 
-        sound.index = index;
-        if (index == 0) {
-            self.firstBuzzSound = sound;
-        } else if (index > 0) {
+        if (index > 0) {
             var previous = self.buzzSounds[index - 1];
             previous.next = sound;
         }
@@ -203,7 +200,10 @@ EBCS.prototype.startPlayingAudio = function() {
         self.buzzSounds.push(sound);
     });
 
-    this.buzzSounds[0].next = this.buzzSounds[1];
+    var first = this.buzzSounds[0];
+    first.next = this.buzzSounds[1];
+    var last = this.buzzSounds[this.buzzSounds.length - 1];
+    last.next = first;
     this.buzzSounds[0].play();
 
 };
