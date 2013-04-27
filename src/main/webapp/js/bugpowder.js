@@ -30,7 +30,7 @@ Ticker.prototype.handleTicker = function(ticker) {
     this.tickerText = ticker.text;
     this.tickerLength = this.tickerText.length;
     this.updateText();
-    //this.timer.start();
+    this.timer.start();
 };
 
 Ticker.prototype.updateText = function() {
@@ -156,7 +156,7 @@ Fear.prototype.show = function(image) {
 };
 
 Fear.prototype.startSequence = function() {
-    //this.timer.start();
+    this.timer.start();
 };
 
 function EBCS() {
@@ -189,7 +189,8 @@ EBCS.prototype.startPlayingAudio = function() {
         if (index == 0) {
             self.firstBuzzSound = sound;
         } else if (index > 0) {
-            self.buzzSounds[index - 1].next = sound;
+            var previous = self.buzzSounds[index - 1];
+            previous.next = sound;
         }
 
         var playNextSound = function() {
@@ -202,7 +203,7 @@ EBCS.prototype.startPlayingAudio = function() {
         self.buzzSounds.push(sound);
     });
 
-    this.buzzSounds[this.buzzSounds.length - 1].next = this.buzzSounds[0];
+    this.buzzSounds[0].next = this.buzzSounds[1];
     this.buzzSounds[0].play();
 
 };
