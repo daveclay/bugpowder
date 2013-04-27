@@ -11,3 +11,5 @@
 
 # audio output directory
 ^audioClips$
+\.*idea
+.*\.iml
