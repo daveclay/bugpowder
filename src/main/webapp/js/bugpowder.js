@@ -30,7 +30,7 @@ Ticker.prototype.handleTicker = function(ticker) {
     this.tickerText = ticker.text;
     this.tickerLength = this.tickerText.length;
     this.updateText();
-    this.timer.start();
+    //this.timer.start();
 };
 
 Ticker.prototype.updateText = function() {
@@ -156,12 +156,11 @@ Fear.prototype.show = function(image) {
 };
 
 Fear.prototype.startSequence = function() {
-    this.timer.start();
+    //this.timer.start();
 };
 
 function EBCS() {
-    this.audioClipSpecList = Array();
-    this.nextAudioFileIdx = -1;
+    this.audioClipSpecList = [];
 };
 
 EBCS.prototype.load = function() {
@@ -177,50 +176,35 @@ EBCS.prototype.handleAudioClipSpecList = function(fileNames) {
     this.startPlayingAudio();
 };
 
-EBCS.prototype.playNextAudioFile = function() {
-    var self = this;
-    var audio = new Audio();
-    
-    var nextAudioFileSpec = this.audioClipSpecList[this.nextAudioFileIdx];
-    
-    var canPlayOgg = !!audio.canPlayType && audio.canPlayType('audio/ogg; codecs="vorbis"') != "";
-    var canPlayMP3 = !!audio.canPlayType && audio.canPlayType('audio/mpeg; codecs="mp3"') != "";
-    var canPlayWAV = !!audio.canPlayType && audio.canPlayType('audio/wave') != "";
-    
-    var extension = "";
-    
-    for (i = 0; i < nextAudioFileSpec.formats.length; i++) {
-    	var format = nextAudioFileSpec.formats[i];
-    	if (format == "ogg" && canPlayOgg) {
-    		extension = ".ogg";
-    		break;
-    	} else if (format == "mp3" && canPlayMP3) {
-    		extension = ".mp3";
-    		break;
-    	} else if (format == "wav" && canPlayWAV) {
-    		extension = ".wav";
-    		break;
-    	}
-    }
-    
-    if (extension == "") {
-    	console.log("I can't play ogg or mp3 or wav, I guess I will give up.");
-    	return;
-	}
-    
-    audio.src = nextAudioFileSpec.file + extension
-    audio.addEventListener("ended", function() { self.playNextAudioFile() }, false);
-    this.nextAudioFileIdx ++;
-    if (this.nextAudioFileIdx == this.audioClipSpecList.length) {
-        this.nextAudioFileIdx = 0;
-    }
-    audio.play();
-};
-
 EBCS.prototype.startPlayingAudio = function() {
     var self = this;
-    this.nextAudioFileIdx = 0;
-    this.playNextAudioFile();
+    this.buzzSounds = [];
+
+    this.audioClipSpecList.forEach(function(audioClipSpec, index) {
+        var file = audioClipSpec.file;
+        var formatsArray = audioClipSpec.formats;
+        var sound = new buzz.sound(file, { formats: formatsArray });
+
+        sound.index = index;
+        if (index == 0) {
+            self.firstBuzzSound = sound;
+        } else if (index > 0) {
+            self.buzzSounds[index - 1].next = sound;
+        }
+
+        var playNextSound = function() {
+            sound.next.play();
+        };
+
+        sound.bind("ended", playNextSound);
+        sound.bind("error", playNextSound);
+
+        self.buzzSounds.push(sound);
+    });
+
+    this.buzzSounds[this.buzzSounds.length - 1].next = this.buzzSounds[0];
+    this.buzzSounds[0].play();
+
 };
 
 function Randomer() {
