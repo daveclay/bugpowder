@@ -184,6 +184,7 @@ EBCS.prototype.startPlayingAudio = function() {
         var file = audioClipSpec.file;
         var formatsArray = audioClipSpec.formats;
         var sound = new buzz.sound(file, { formats: formatsArray });
+        sound.index = index;
 
         if (index > 0) {
             var previous = self.buzzSounds[index - 1];
@@ -191,11 +192,20 @@ EBCS.prototype.startPlayingAudio = function() {
         }
 
         var playNextSound = function() {
-            sound.next.play();
+            if (sound.next) {
+                sound.next.play();
+            } else {
+                console.log("No next sound found for " + index);
+            }
         };
 
-        sound.bind("ended", playNextSound);
-        sound.bind("error", playNextSound);
+        sound.bind("ended", function(e) {
+            playNextSound();
+        });
+
+        sound.bind("error", function(e) {
+            playNextSound();
+        });
 
         self.buzzSounds.push(sound);
     });

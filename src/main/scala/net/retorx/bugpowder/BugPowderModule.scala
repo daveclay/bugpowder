@@ -4,10 +4,9 @@ import com.google.inject.AbstractModule
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider
 import net.retorx.web.JacksonScalaContextResolver
 import com.google.inject.Provides
+import BugPowder._
 
 class BugPowderModule extends AbstractModule {
-  
-	val ebcsAudioClipPath = "/tmp/EBCS-audioClips"
 
     def configure() {
         bind(classOf[JacksonScalaContextResolver])
@@ -21,5 +20,11 @@ class BugPowderModule extends AbstractModule {
 	
 	@Provides
 	def provideEBCSFreshener = new EBCSFreshener(ebcsAudioClipPath)
+
+}
+
+object BugPowder {
+
+    val ebcsAudioClipPath = "/tmp/EBCS-audioClips"
 
 }

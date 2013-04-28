@@ -39,3 +39,10 @@ class StartupListener extends ResteasyBootstrap with ServletContextListener {
         }
     }
 }
+
+class DefaultServletDirectoryFuckerUpper {
+
+    def changeDefaultServletDirectory() {
+
+    }
+}
