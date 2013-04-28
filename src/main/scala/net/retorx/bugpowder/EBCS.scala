@@ -11,6 +11,7 @@ import java.io.FilenameFilter
 @Singleton
 class EBCS(audioClipDirectory : String) {
 
+    val AUDIO_CONTEXT_PATH = "audio/"
 	val clipsPerGet = 40
     val random = new Random
     
@@ -25,7 +26,9 @@ class EBCS(audioClipDirectory : String) {
 	  	val returnVals = new Array[AudioClipSpec](clipsPerGet)
 	  	for (i <- 0 until clipsPerGet) {
 	  	    val fileName = fullDirectoryListing(random.nextInt(fullDirectoryListing.length))
-	  		returnVals(i) = AudioClipSpec(getFormats(fileName),"api/fear/audioClip/" + fileName)
+            val formats = getFormats(fileName)
+            val urlToAudio = AUDIO_CONTEXT_PATH + fileName
+            returnVals(i) = AudioClipSpec(formats, urlToAudio)
 	  	}
 	  	
 	  	returnVals.toList

@@ -1,7 +1,7 @@
 body {
     background: black;
     color: white;
-    font-size: 11px;
+    font-size: 23px;
     font-family: Consolas, monaco, monospace;
 }
 
@@ -28,7 +28,7 @@ body {
     top: 95%;
     width: 100%;
     overflow-x: hidden;
-    height: 11px;
+    height: 23px;
     background: black;
     color: #a6a6a6;
 }
