@@ -51,7 +51,7 @@ class AudioCompressor(outputDirectory : String, wavFileName : String) {
   }
   
   private def attemptToRunCommandLine(command : String) : Boolean = {
-    val execService = new ExecService("/Users/daveclay",false)
+    val execService = new ExecService(".",false)
     var success = false
     try {
       success = execService.exec(command){ line => true }
