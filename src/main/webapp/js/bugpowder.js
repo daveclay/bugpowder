@@ -68,10 +68,17 @@ function Fear() {
     this.insanitySwap = false;
 
     var self = this;
-    this.insanityInterval = setInterval(function() {
+    this.insanityTimer = new Timer();
+    this.adjustInsanity();
+    this.insanityTimer.onUpdate(function() {
         self.swapInsanity();
-    }, 10000);
+    });
+    this.insanityTimer.start();
 }
+
+Fear.prototype.adjustInsanity = function() {
+    this.insanityTimer.delay = Math.floor(Math.random() * 10000);
+};
 
 Fear.prototype.load = function() {
     var self = this;
@@ -113,6 +120,7 @@ Fear.prototype.nextImage = function(tick) {
 };
 
 Fear.prototype.swapInsanity = function() {
+    this.adjustInsanity();
     var self = this;
     if (this.insanitySwap) {
         this.images.forEach(function(image) {
