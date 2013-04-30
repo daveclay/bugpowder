@@ -20,7 +20,7 @@ class Townhall extends LogoFilteringFearSourceImp(
 class FoxNews extends LogoFilteringFearSourceImp(
     Array("http://www.foxnews.com",
         "http://www.foxnews.com/politics/index.html"),
-    src => (src.contains("root_images") || src.contains("ucat") || src.contains("managed")) && (! src.contains("logo")))
+    src => (src.contains("root_images") || src.contains("ucat") || src.contains("managed")))
 
 @Singleton
 class CNN extends LogoFilteringFearSourceImp(
