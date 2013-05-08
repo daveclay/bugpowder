@@ -29,6 +29,19 @@ class CNN extends LogoFilteringFearSourceImp(
         "http://politicalticker.blogs.cnn.com/"),
     src => src.contains("asset"))
 
+@Singleton
+class Rueters extends LogoFilteringFearSourceImp(
+    Array("http://www.reuters.com/news/pictures",
+          "http://www.reuters.com/finance/markets"),
+    src => !src.contains("arrow") && !src.contains("icon")
+)
+
+@Singleton
+class Getty extends LogoFilteringFearSourceImp(
+    Array("http://www.gettyimages.com/editorialimages/news"),
+    src => !src.contains("clear")
+)
+
 
 @Singleton
 class FearBuilder {
@@ -46,15 +59,20 @@ class FearBuilder {
     }
 }
 
-trait FearSource {
-    def getImages:List[String]
+class DivSrcFearSource(urls: Array[String], filter:String => Boolean) extends FearSource(urls) {
+    def grab(url: String) = {
+        val doc = Jsoup.connect(url).get
+        val images = doc.select("div")
+        images.iterator().map(element => {
+            element.attr("src")
+        }).filter(src => {
+            println(src)
+            filter(src.toLowerCase)
+        } )
+    }
 }
 
-class LogoFilteringFearSourceImp(urls: Array[String], filter:String => Boolean)
-        extends FilteringFearSource(urls, src => { filter(src) && (src.indexOf("logo") < 0) })
-
-class FilteringFearSource(urls: Array[String], filter:String => Boolean) extends FearSource {
-
+abstract class FearSource(urls: Array[String]) {
     def getImages = {
         urls.foldLeft(List[String]())((list,url) => {
             val images = grab(url)
@@ -62,11 +80,20 @@ class FilteringFearSource(urls: Array[String], filter:String => Boolean) extends
         })
     }
 
-    private def grab(url: String) = {
+    def grab(url: String): Iterator[String]
+}
+
+class LogoFilteringFearSourceImp(urls: Array[String], filter:String => Boolean) extends FilteringFearSource(urls, src => { filter(src) && (src.indexOf("logo") < 0) })
+
+class FilteringFearSource(urls: Array[String], filter:String => Boolean) extends FearSource(urls) {
+
+    override def grab(url: String) = {
         val doc = Jsoup.connect(url).get
         val images = doc.select("img")
         images.iterator().map(element => {
             element.attr("src")
-        }).filter(src => { filter(src.toLowerCase) } )
+        }).filter(src => {
+            filter(src.toLowerCase)
+        } )
     }
 }
