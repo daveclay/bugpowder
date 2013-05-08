@@ -8,8 +8,8 @@ $(document).ready(function() {
 });
 
 function Ticker() {
-    this.timer = new Timer();
-    this.timer.delay = 200;
+    this.imageTimer = new Timer();
+    this.imageTimer.delay = 200;
     this.element = $('<div/>');
     this.element.addClass("ticker");
     addToBody(this.element);
@@ -24,13 +24,13 @@ Ticker.prototype.load = function() {
 
 Ticker.prototype.handleTicker = function(ticker) {
     var self = this;
-    this.timer.onUpdate(function(tick) {
+    this.imageTimer.onUpdate(function(tick) {
         self.moveTicker(tick);
     });
     this.tickerText = ticker.text;
     this.tickerLength = this.tickerText.length;
     this.updateText();
-    this.timer.start();
+    this.imageTimer.start();
 };
 
 Ticker.prototype.updateText = function() {
@@ -58,8 +58,8 @@ Image.prototype.hide = function() {
 
 function Fear() {
     this.randomer = new Randomer();
-    this.timer = new Timer();
-    this.timer.delay = 70;
+    this.imageTimer = new Timer();
+    this.imageTimer.delay = 70;
     this.container = $('<div/>');
     this.container.addClass("container");
     addToBody(this.container);
@@ -72,6 +72,10 @@ function Fear() {
     this.adjustInsanity();
     this.insanityTimer.onUpdate(function() {
         self.swapInsanity();
+    });
+    this.imageTimer.onLoopStart(function() {
+        self.images = shuffle(self.images);
+        console.log("yo, I shuffled.");
     });
     this.insanityTimer.start();
 }
@@ -93,8 +97,8 @@ Fear.prototype.handleImages = function(images) {
         self.handleImage(image, idx);
     });
 
-    this.timer.length = this.images.length;
-    this.timer.onUpdate(function(tick) {
+    this.imageTimer.length = this.images.length;
+    this.imageTimer.onUpdate(function(tick) {
         self.nextImage(tick);
     });
     this.chosenImage = this.images[this.randomer.randomInt(this.images.length)];
@@ -127,7 +131,7 @@ Fear.prototype.swapInsanity = function() {
             image.element.addClass("fearImg hidden");
             image.element.removeClass("fearImgLayout");
         });
-        this.timer.onUpdate(function(tick) {
+        this.imageTimer.onUpdate(function(tick) {
             self.nextImage(tick);
         });
     } else {
@@ -135,7 +139,7 @@ Fear.prototype.swapInsanity = function() {
             image.element.removeClass("fearImg hidden");
             image.element.addClass("fearImgLayout");
         });
-        this.timer.onUpdate(function(tick) {
+        this.imageTimer.onUpdate(function(tick) {
             self.insanity(tick);
         });
     }
@@ -164,7 +168,7 @@ Fear.prototype.show = function(image) {
 };
 
 Fear.prototype.startSequence = function() {
-    this.timer.start();
+    this.imageTimer.start();
 };
 
 function EBCS() {
@@ -247,29 +251,48 @@ function Timer() {
     this.length = 100;
     this.delay = 100;
     this.onUpdateHandler = function() {};
+    this.onLoopStartHandler = function() {};
 }
+
+Timer.prototype.onLoopStart = function(handler) {
+    this.onLoopStartHandler = handler;
+};
 
 Timer.prototype.onUpdate = function(handler) {
     this.onUpdateHandler = handler;
 };
 
 Timer.prototype.start = function() {
+    this.trigger();
+};
+
+Timer.prototype.trigger = function() {
     var self = this;
-    this.interval = setInterval(function() {
-        self.update();
+    this.timeout = setTimeout(function() {
+        self.callOnTick();
     }, this.delay);
 };
 
-Timer.prototype.update = function() {
+Timer.prototype.callOnLoopStart = function() {
+    this.onLoopStartHandler();
+};
+
+Timer.prototype.callOnTick = function() {
     this.onUpdateHandler(this.tick);
     this.tick++;
     if (this.tick >= this.length) {
         this.tick = 0;
+        this.callOnLoopStart();
     }
+    this.trigger();
 };
 
 Timer.prototype.stop = function() {
     clearInterval(this.interval);
 };
 
+function shuffle(o) {
+    for (var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+    return o;
+}
 

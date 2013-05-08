@@ -13,9 +13,9 @@ import org.scalatest.matchers.ShouldMatchers
 @RunWith(classOf[JUnitRunner])
 class CNNTest extends FlatSpec with DefaultExampleExpectationsListener with Mockito with ShouldMatchers with OneInstancePerTest {
 
-    val cnn = new CNN()
+    val cnn = new Rueters()
 
-    "CNN" should "grab some images" in {
+    "The FearSource " should "grab some images" in {
         cnn.getImages.foreach(img => {
             println(img)
         })
