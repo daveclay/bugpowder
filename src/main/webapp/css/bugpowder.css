@@ -36,3 +36,18 @@ body {
 .hidden {
     visibility: hidden;
 }
+
+
+.highlight {
+    top: 100px;
+    left: 30px;
+    position: absolute;
+    display: block;
+}
+
+.logo {
+    position: absolute;
+    right: 50px;
+    bottom: 50px;
+    z-index: 10000;
+}

@@ -75,7 +75,6 @@ function Fear() {
     });
     this.imageTimer.onLoopStart(function() {
         self.images = shuffle(self.images);
-        console.log("yo, I shuffled.");
     });
     this.insanityTimer.start();
 }
@@ -150,9 +149,7 @@ Fear.prototype.insanity = function(tick) {
     var self = this;
     this.images.forEach(function(image) {
         var randomImage = self.randomer.pickRandom(self.images);
-        if ( ! randomImage) {
-            console.log("WTF: " + randomImage);
-        } else {
+        if (randomImage) {
             var src = randomImage.imageUrl;
             $(image.element).attr("src", src);
         }
