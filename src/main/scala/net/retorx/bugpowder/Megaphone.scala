@@ -33,9 +33,9 @@ class Megaphone {
     }
 
     def getVoices = {
-        val urls = Array("http://www.huffingtonpost.com/feeds/verticals/politics/index.xml")
+        val urls = Array("http://en.wikipedia.org/wiki/Bananas")
         urls.foldLeft(List[Voice]())((list, url) => {
-            list ++ Feed.load(url)
+            list ++ Feed.parseHtml(url)
         })
     }
 }
@@ -44,6 +44,14 @@ case class Voice(title: String, description: String)
 case class Ticker(text: String)
 
 object Feed {
+
+    def parseHtml(url: String):Iterator[Voice] = {
+        val doc = Jsoup.connect(url).get
+        val paragraphs = doc.select("p")
+        paragraphs.iterator().map(element => {
+            new Voice("This shit", element.text())
+        })
+    }
 
     def load(url: String):Iterator[Voice] = {
         val feedSource = new URL(url)
