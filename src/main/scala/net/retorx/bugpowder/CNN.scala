@@ -4,6 +4,27 @@ import com.google.inject.Singleton
 import org.jsoup.Jsoup
 import scala.collection.JavaConversions._
 import scala.collection.immutable.HashSet
+import org.jsoup.nodes.Document
+
+/*
+
+[
+    {
+        "name": "CNN",
+        "urls": [
+            "http://www.cnn.com",
+            "http://www.cnn.com/POLITICS/",
+            "http://politicalticker.blogs.cnn.com/"
+        ],
+        "filters": [
+            {
+                src => src.contains("media") && (! src.contains("comments.png") || ! src.contains("partner")))
+            }
+        ]
+    }
+]
+
+ */
 
 @Singleton
 class HuffingtonPost extends LogoFilteringFearSourceImp(
@@ -20,7 +41,7 @@ class Townhall extends LogoFilteringFearSourceImp(
 class FoxNews extends LogoFilteringFearSourceImp(
     Array("http://www.foxnews.com",
         "http://www.foxnews.com/politics/index.html"),
-    src => (src.contains("root_images") || src.contains("ucat") || src.contains("managed")))
+    src => src.contains("root_images") || src.contains("ucat") || src.contains("managed"))
 
 @Singleton
 class CNN extends LogoFilteringFearSourceImp(
@@ -42,9 +63,23 @@ class Getty extends LogoFilteringFearSourceImp(
     src => !src.contains("clear")
 )
 
+@Singleton
+class Insanity extends FearSource(
+    Array("http://www.lambsofabortion.com/bananas")) {
+    def grab(doc: Document): Iterator[String] = {
+        val images = doc.select("img")
+        images.iterator().map(element => {
+            element.attr("src")
+        } )
+    }
+}
 
 @Singleton
 class FearBuilder {
+
+    val insanitySources = Array(
+        new Insanity()
+    )
 
     val fearSources = Array(
         new CNN(),
@@ -53,15 +88,14 @@ class FearBuilder {
         new Townhall())
 
     def getImages = {
-        fearSources.foldLeft(new HashSet[String]())((list, fearSource) => {
+        insanitySources.foldLeft(new HashSet[String]())((list, fearSource) => {
             list ++ fearSource.getImages
         })
     }
 }
 
 class DivSrcFearSource(urls: Array[String], filter:String => Boolean) extends FearSource(urls) {
-    def grab(url: String) = {
-        val doc = Jsoup.connect(url).get
+    def grab(doc: Document) = {
         val images = doc.select("div")
         images.iterator().map(element => {
             element.attr("src")
@@ -75,20 +109,20 @@ class DivSrcFearSource(urls: Array[String], filter:String => Boolean) extends Fe
 abstract class FearSource(urls: Array[String]) {
     def getImages = {
         urls.foldLeft(List[String]())((list,url) => {
-            val images = grab(url)
+            val doc = Jsoup.connect(url).get
+            val images = grab(doc)
             list ++ images
         })
     }
 
-    def grab(url: String): Iterator[String]
+    def grab(doc: Document): Iterator[String]
 }
 
 class LogoFilteringFearSourceImp(urls: Array[String], filter:String => Boolean) extends FilteringFearSource(urls, src => { filter(src) && (src.indexOf("logo") < 0) })
 
 class FilteringFearSource(urls: Array[String], filter:String => Boolean) extends FearSource(urls) {
 
-    override def grab(url: String) = {
-        val doc = Jsoup.connect(url).get
+    override def grab(doc: Document) = {
         val images = doc.select("img")
         images.iterator().map(element => {
             element.attr("src")
