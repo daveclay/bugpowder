@@ -192,7 +192,7 @@ EBCS.prototype.startPlayingAudio = function() {
     this.audioClipSpecList.forEach(function(audioClipSpec, index) {
         var file = audioClipSpec.file;
         var formatsArray = audioClipSpec.formats;
-        var sound = new buzz.sound(file, { formats: formatsArray });
+        var sound = new buzz.sound(file, { formats: formatsArray, preload: true, autoplay: false, loop: false });
         sound.index = index;
 
         if (index > 0) {
@@ -213,7 +213,9 @@ EBCS.prototype.startPlayingAudio = function() {
         });
 
         sound.bind("error", function(e) {
-            playNextSound();
+            if(this.getErrorCode() != 0) {
+            	playNextSound();
+            }
         });
 
         self.buzzSounds.push(sound);
@@ -223,7 +225,9 @@ EBCS.prototype.startPlayingAudio = function() {
     first.next = this.buzzSounds[1];
     var last = this.buzzSounds[this.buzzSounds.length - 1];
     last.next = first;
-    this.buzzSounds[0].play();
+    this.buzzSounds[0].bind("canplay",function(e) {
+        this.play();
+    });
 
 };
 
