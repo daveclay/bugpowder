@@ -11,8 +11,8 @@
     <packaging>war</packaging>
 
     <properties>
-        <maven.compiler.source>1.5</maven.compiler.source>
-        <maven.compiler.target>1.5</maven.compiler.target>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
         <encoding>UTF-8</encoding>
         <scala.version>2.10.0</scala.version>
         <jackson.version>2.1.2</jackson.version>
@@ -25,10 +25,16 @@
             <name>SpringSource Enterprise Bundle Repository - External Bundle Releases</name>
             <url>http://repository.springsource.com/maven/bundles/external</url>
         </repository>
+        <repository>
+            <id>dcm4che</id>
+            <name>dcm4che</name>
+            <url>https://www.dcm4che.org/maven2/</url>
+        </repository>
     </repositories>
 
     <dependencies>
 
+        <!-- https://mvnrepository.com/artifact/xuggle/xuggle-xuggler -->
         <dependency>
             <groupId>xuggle</groupId>
             <artifactId>xuggle-xuggler</artifactId>

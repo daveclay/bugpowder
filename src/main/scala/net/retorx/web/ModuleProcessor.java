@@ -1,6 +1,7 @@
 package net.retorx.web;
 
 import com.google.inject.*;
+import com.google.inject.Module;
 import org.jboss.resteasy.logging.Logger;
 import org.jboss.resteasy.plugins.guice.GuiceResourceFactory;
 import org.jboss.resteasy.spi.Registry;
