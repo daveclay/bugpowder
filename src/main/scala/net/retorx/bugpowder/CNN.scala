@@ -1,49 +1,50 @@
 package net.retorx.bugpowder
 
-import com.google.inject.Singleton
 import org.jsoup.Jsoup
+import org.springframework.stereotype.Service
+
 import scala.jdk.CollectionConverters._
 import scala.collection.immutable.HashSet
 
-@Singleton
+@Service
 class HuffingtonPost extends LogoFilteringFearSourceImp(
     Array("http://www.huffingtonpost.com/politics/"),
     src => src.contains("i.huffington"))
 
-@Singleton
+@Service
 class Townhall extends LogoFilteringFearSourceImp(
     Array("http://townhall.com/"),
     src => src.contains("media") && (! src.contains("comments.png") || ! src.contains("partner")))
 
 
-@Singleton
+@Service
 class FoxNews extends LogoFilteringFearSourceImp(
     Array("http://www.foxnews.com",
         "http://www.foxnews.com/politics/index.html"),
     src => (src.contains("root_images") || src.contains("ucat") || src.contains("managed")))
 
-@Singleton
+@Service
 class CNN extends LogoFilteringFearSourceImp(
     Array("http://www.cnn.com",
         "http://www.cnn.com/POLITICS/",
         "http://politicalticker.blogs.cnn.com/"),
     src => src.contains("asset"))
 
-@Singleton
+@Service
 class Rueters extends LogoFilteringFearSourceImp(
     Array("http://www.reuters.com/news/pictures",
           "http://www.reuters.com/finance/markets"),
     src => !src.contains("arrow") && !src.contains("icon")
 )
 
-@Singleton
+@Service
 class Getty extends LogoFilteringFearSourceImp(
     Array("http://www.gettyimages.com/editorialimages/news"),
     src => !src.contains("clear")
 )
 
 
-@Singleton
+@Service
 class FearBuilder {
 
     val fearSources = Array(

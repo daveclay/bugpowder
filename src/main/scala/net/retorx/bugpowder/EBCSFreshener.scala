@@ -1,20 +1,27 @@
 package net.retorx.bugpowder
 import scala.xml.XML
 import java.net.URL
+
 import net.retorx.audio.SpeechSplitter
 import java.text.DecimalFormat
 import java.util.Calendar
+
 import net.retorx.audio.DiskWritingCompressingClipHandler
 import java.io.File
-import com.google.inject.Singleton
+
 import net.retorx.audio.AudioCompressor
+
 import scala.io.Source
 import java.io.PrintWriter
 import java.io.FileOutputStream
 
-@Singleton
-class EBCSFreshener(audioClipDirectory : String) {
-  
+import javax.servlet.ServletContext
+import org.springframework.beans.factory.annotation.{Autowired, Value}
+import org.springframework.stereotype.Service
+import org.springframework.web.context.support.ServletContextResource;
+
+@Service
+class EBCSFreshener(@Value("${ebcsAudioClipPath}") audioClipDirectory: String) {
 	var fresheningThread : Thread = null
   
     def freshen() {

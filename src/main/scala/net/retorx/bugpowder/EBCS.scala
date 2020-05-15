@@ -1,16 +1,20 @@
 package net.retorx.bugpowder
 
-import com.google.inject.{Inject, Singleton}
 import java.io.File
+
 import scala.util.Random
 import java.io.InputStream
 import java.io.BufferedInputStream
 import java.io.FileInputStream
 import java.io.FilenameFilter
 
-@Singleton
-class EBCS(audioClipDirectory : String) {
+import javax.servlet.ServletContext
+import org.springframework.beans.factory.annotation.{Autowired, Value}
+import org.springframework.stereotype.Service
+import org.springframework.web.context.support.ServletContextResource
 
+@Service
+class EBCS(@Value("${ebcsAudioClipPath}") audioClipDirectory: String) {
     val AUDIO_CONTEXT_PATH = "audio/"
 	val clipsPerGet = 40
     val random = new Random

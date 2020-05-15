@@ -1,17 +1,20 @@
 package net.retorx.bugpowder
 
-import com.google.inject.Singleton
 import scala.util.Random
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
+
 import scala.jdk.CollectionConverters._
 import scala.collection.immutable.HashSet
-import com.sun.syndication.io.{XmlReader, SyndFeedInput}
+import com.sun.syndication.io.{SyndFeedInput, XmlReader}
 import java.net.URL
+
 import com.sun.syndication.feed.synd.SyndEntry
 import java.util
 
-@Singleton
+import org.springframework.stereotype.Service
+
+@Service
 class Megaphone {
 
     private val random = new Random()

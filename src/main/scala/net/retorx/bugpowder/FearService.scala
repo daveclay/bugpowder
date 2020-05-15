@@ -1,11 +1,11 @@
 package net.retorx.bugpowder
 
 import javax.ws.rs._
-import com.google.inject.{Inject, Singleton}
+import org.springframework.stereotype.Service
 
-@Singleton
+@Service
 @Path("/fear")
-class FearService @Inject() (fearBuilder: FearBuilder, megaphone: Megaphone, ebcs : EBCS, ebcsFreshener : EBCSFreshener) {
+class FearService(fearBuilder: FearBuilder, megaphone: Megaphone, ebcs : EBCS, ebcsFreshener : EBCSFreshener) {
 
     @GET
     @Path("/images")
