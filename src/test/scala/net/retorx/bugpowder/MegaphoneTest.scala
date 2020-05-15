@@ -1,15 +1,9 @@
 package net.retorx.bugpowder
 
-import org.junit.runner.RunWith
-import org.specs._
-import mock.Mockito
-import org.scalatest.{OneInstancePerTest, FlatSpec}
-import specification.DefaultExampleExpectationsListener
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.OneInstancePerTest
 
-@RunWith(classOf[JUnitRunner])
-class MegaphoneTest extends FlatSpec with DefaultExampleExpectationsListener with Mockito with ShouldMatchers with OneInstancePerTest {
+class MegaphoneTest extends AnyFlatSpec with OneInstancePerTest {
 
     val megaphone = new Megaphone()
 
