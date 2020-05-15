@@ -4,7 +4,7 @@ import com.google.inject.Singleton
 import scala.util.Random
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import scala.collection.immutable.HashSet
 import com.sun.syndication.io.{XmlReader, SyndFeedInput}
 import java.net.URL
@@ -50,7 +50,7 @@ object Feed {
         val input = new SyndFeedInput()
         val feed = input.build(new XmlReader(feedSource))
         val arrayList = feed.getEntries.asInstanceOf[util.ArrayList[SyndEntry]]
-        asScalaIterator(arrayList.iterator()).map(entry => {
+        arrayList.iterator().asScala.map(entry => {
             val title = entry.getTitle
             val desc = entry.getDescription.getValue
             Voice(title, desc)

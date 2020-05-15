@@ -2,7 +2,7 @@ package net.retorx.bugpowder
 
 import com.google.inject.Singleton
 import org.jsoup.Jsoup
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import scala.collection.immutable.HashSet
 
 @Singleton
@@ -63,7 +63,7 @@ class DivSrcFearSource(urls: Array[String], filter:String => Boolean) extends Fe
     def grab(url: String) = {
         val doc = Jsoup.connect(url).get
         val images = doc.select("div")
-        images.iterator().map(element => {
+        images.iterator().asScala.map(element => {
             element.attr("src")
         }).filter(src => {
             println(src)
@@ -90,7 +90,7 @@ class FilteringFearSource(urls: Array[String], filter:String => Boolean) extends
     override def grab(url: String) = {
         val doc = Jsoup.connect(url).get
         val images = doc.select("img")
-        images.iterator().map(element => {
+        images.iterator().asScala.map(element => {
             element.attr("src")
         }).filter(src => {
             filter(src.toLowerCase)
